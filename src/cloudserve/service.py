@@ -10,7 +10,7 @@ from cloudserve.agents import AnswerAgent, EvidenceAgent, TriageAgent, Verificat
 from cloudserve.classifier import classify
 from cloudserve.config import runtime_dir, setting
 from cloudserve.contracts import Classification, EscalationPacket, Ticket, TicketResult, utc_now
-from cloudserve.knowledge import resolve
+from cloudserve.orchestration.ticket_graph import TicketRun, run_ticket_graph
 from cloudserve import guardrails, policy
 from cloudserve.storage import Store
 
@@ -53,91 +53,23 @@ class TicketService:
         events: list[tuple[str, dict]] = [("normalized", {"ticket_id": ticket_id, "channel": ticket.channel,
                                                       "subject": ticket.subject, "body": ticket.body,
                                                       "received_at": ticket.received_at, "input_hash": payload_hash})]
-        findings: list[str] = []
-        guardrail_results: list[dict] = []
-        citations = []
-        passages = []
-        answer = ""
-        reason_override = ""
-        evidence_score = 0.0
         chosen_mode = mode or setting("CLOUDSERVE_MODEL_MODE", "extractive")
         if chosen_mode not in {"extractive", "azure"}:
             chosen_mode = "extractive"
+        run = TicketRun(ticket=ticket, raw=raw, invalid_channel=invalid_channel, mode=chosen_mode, service=self, events=events)
         try:
-            classification = classify(ticket)
-            events.append(("classified", classification.model_dump()))
-            if invalid_channel:
-                decision = policy.escalate("invalid_channel", "Unrecognized ticket channel.")
-            elif not ticket.subject.strip() and not ticket.body.strip():
-                decision = policy.escalate("empty_ticket", "The request has no usable description.")
-            elif policy.kill_switch_state()["active"] or policy.fired_rules(ticket, classification):
-                decision = policy.route(ticket, classification)
-            else:
-                guardrail_results.extend(guardrails.check_input(ticket.subject, ticket.body))
-                findings.extend(guardrails.failures(guardrail_results))
-                if findings:
-                    decision = policy.escalate("guardrail_blocked", "The ticket text tries to change the system's instructions; it was recorded for review.")
-                elif classification.nearest_training_similarity < policy.NOVELTY_THRESHOLD:
-                    decision = policy.route(ticket, classification)
-                elif classification.intent_confidence < policy.AUTO_THRESHOLD:
-                    steps.append("Triage Agent")
-                    events.append(("triage_reviewed", self.triage.assess(ticket, classification)))
-                    decision = policy.route(ticket, classification)
-                else:
-                    steps.append("Evidence Agent")
-                    bundle = self.evidence.gather(ticket, classification)
-                    passages = bundle.passages
-                    evidence_score = bundle.top_score
-                    events.append(("evidence", {"passage_ids": [p.passage_id for p in passages], "searches": bundle.searches,
-                                                "scores": {p.passage_id: p.score for p in passages},
-                                                "document_id": bundle.document_id, "document_confidence": bundle.document_confidence,
-                                                "snapshot_revision": bundle.snapshot_revision, "sufficient": bundle.sufficient,
-                                                "reason": bundle.reason, "queries": bundle.queries}))
-                    decision = policy.route(ticket, classification, evidence_score,
-                                            has_approved_article=bundle.reason != "no_approved_article")
-                    if decision.action == "answer":
-                        draft_passages = [passages[0], *bundle.supporting_passages]
-                        steps.append("Answer Agent")
-                        answer = self.answer.draft(ticket, draft_passages, chosen_mode)
-                        if not isinstance(answer, str):
-                            raise TypeError("draft must be text")
-                        events.append(("drafted", {"citation_ids": re.findall(r"\[([A-Z0-9-]+#p\d+)\]", answer), "mode": chosen_mode,
-                                                   "prompt_version": self.answer.PROMPT_VERSION.get(chosen_mode)}))
-                        if answer.strip().upper().startswith("ABSTAIN"):
-                            reason_override = "answer_abstained"
-                        else:
-                            steps.append("Verification Agent")
-                            verdict = self.verification.verify(answer, draft_passages, chosen_mode)
-                            events.append(("verified", verdict))
-                            cited_ids = list(dict.fromkeys(verdict["citations"]))
-                            guardrail_results.extend(guardrails.check_output(answer, cited_ids, {p.passage_id for p in draft_passages},
-                                                                              str(raw.get("customer_name") or "")))
-                            # A missing citation is already reported by grounding_citations; avoid a duplicate finding.
-                            claim_ok = verdict["supported"] or verdict["reason"] == "missing_or_unretrieved_citation"
-                            guardrail_results.append({"check": "claim_support", "result": "pass" if claim_ok else "fail",
-                                                      "detail": verdict["reason"]})
-                            citations = [p for p in draft_passages if p.passage_id in cited_ids and
-                                         (active := resolve(p.passage_id)) and active.source_version == p.source_version]
-                            if len(citations) != len(cited_ids):
-                                guardrail_results.append({"check": "citation_version", "result": "fail", "detail": "citation_resolution_failed"})
-                            findings.extend(f for f in guardrails.failures(guardrail_results) if f not in findings)
-                            if "claim_support" in findings:
-                                findings[findings.index("claim_support")] = verdict["reason"]
-                            if "citation_version" in findings:
-                                findings[findings.index("citation_version")] = "citation_resolution_failed"
-                            if findings:
-                                reason_override = "guardrail_blocked"
-                            elif policy.kill_switch_state()["active"]:
-                                # Tickets in flight when the switch is thrown are held, not sent.
-                                decision = policy.route(ticket, classification)
-            events.append(("routed", decision.model_dump()))
+            run_ticket_graph(run)
+            run.events.append(("routed", run.decision.model_dump()))
         except Exception as error:
             # Fail closed for model, retrieval, verifier, and malformed draft
             # failures. Persistence remains outside this block: a storage
             # failure must be visible rather than pretending a handoff exists.
-            classification = locals().get("classification") or Classification(intent="unknown", urgency="medium", intent_confidence=0, urgency_confidence=0)
-            decision = policy.escalate("processing_failure", "A processing dependency was unavailable.")
-            events.append(("failure", {"type": type(error).__name__}))
+            run.classification = run.classification or Classification(intent="unknown", urgency="medium", intent_confidence=0, urgency_confidence=0)
+            run.decision = policy.escalate("processing_failure", "A processing dependency was unavailable.")
+            run.events.append(("failure", {"type": type(error).__name__}))
+        classification, decision, findings, passages = run.classification, run.decision, run.findings, run.passages
+        answer, reason_override, citations, steps = run.answer, run.reason_override, run.citations, run.steps
+        guardrail_results, evidence_score = run.guardrail_results, run.evidence_score
         if reason_override:
             decision = policy.escalate(reason_override, "Draft could not pass the answer safety gate." if reason_override == "guardrail_blocked"
                                        else "The answer step declined to answer from the available evidence.")
@@ -173,7 +105,7 @@ class TicketService:
         )
         events.append(("decision", _decision_record(result, ticket, payload_hash, passages, evidence_score, chosen_mode, self)))
         events.append(("terminal", {"state": result.terminal_state, "reason_codes": decision.reason_codes, "guardrail_findings": findings}))
-        self.store.save(payload_hash, result, events)
+        self.store.save(payload_hash, result, events, tenant_id=ticket.customer_id)
         return result
 
 
