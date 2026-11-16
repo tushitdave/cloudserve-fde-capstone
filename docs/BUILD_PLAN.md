@@ -193,7 +193,7 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 | [ ] | P9-04 | Add liveness/readiness, logs/metrics, alerts and operator runbook for outage, bad index, policy rollback and PII incident. | Induced failure fires alert and documented recovery steps work. |
 | [ ] | P9-05 | Run performance and cost profile across answer and escalation paths; benchmark conditional o3-mini use. | p50/p95, token/cost and timeout rates by stage; decision on model routing. |
 | [ ] | P9-06 | Verify container build, React production build, clean checkout, one-command tests and CI. | Recorded commands/logs on a fresh machine or clean directory. |
-| [ ] | P9-07 | Complete governance/risk register, fairness audit and incident procedure. | Risk owner, trigger, mitigation, residual risk and subgroup counts. |
+| [x] | P9-07 | Complete governance/risk register, fairness audit and incident procedure. | Risk owner, trigger, mitigation, residual risk and subgroup counts. |
 
 ### P10 — Workbooks, report, video and final package (G7)
 
@@ -379,3 +379,10 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 
 - Repository published at https://github.com/tushitdave/cloudserve-fde-capstone after a credential scan. Every key and endpoint value from the private workspace `.env` was checked against full git history, the tracked tree and pending files, and none was found.
 - Hosted CI run **43889620478** passed on a fresh `ubuntu-latest` runner with Python 3.12. It ran a pinned `pip install -r requirements.txt` (exact versions installed), the architecture/credential check, **64 passed**, and `npm ci && npm run build`. This closes P0-02 (fresh install of the pinned dependencies) and P0-05 (CI run ID). A clean-checkout run of README `scripts/dev.sh` with a browser check (P0-04/P0-06) and the container build (P9-06) remain open.
+
+### Prompt library, governance and demo script (17 November 2026)
+
+- `prompts/` now holds versioned prompts PR-01–PR-05 with a `registry.json` (agent, model, inputs/outputs, requirement IDs, change log). The Azure prompts are loaded from these files at runtime (`agents.prompt`), and the backend Dockerfile copies `prompts/`. Test `test_prompt_registry_files_exist_and_load`. P6-01 stays open: knowledge-agent and Evidence specifications, per-agent timeouts and trace spans are not yet in the registry.
+- **P9-07 checked:** [governance.md](governance.md) holds the decision-log specification, a 9-risk register (likelihood, impact, control with evidence, residual risk, owner), the fairness audit across all Framework segments with counts, the guardrail table, a 6-step incident procedure, the kill-switch table and the declaration. The fluency and region gaps are reported as not meeting the <5-point condition.
+- The demo script in [submission_readiness.md](submission_readiness.md) has been rewritten for v2: success, escalation, guardrail, out-of-scope, kill switch, full run and limits.
+- `./scripts/test.sh`: **65 passed**, React build OK.

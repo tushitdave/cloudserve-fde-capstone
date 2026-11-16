@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "prompts": [
+    {"prompt_id": "PR-01", "version": "answer-azure-gpt4o-v1", "agent": "Answer Agent", "file": "answer_azure_v1.system.txt",
+     "model": "Azure gpt-4o", "used_when": "CLOUDSERVE_MODEL_MODE=azure and policy allows a draft",
+     "inputs": "ticket subject/body marked untrusted; up to 5 approved passages with passage IDs",
+     "output": "plain text with [passage_id] citations, or ABSTAIN",
+     "requirement_ids": ["FR07", "FR06", "NFR05"], "status": "configured; quality not yet measured on human-reviewed claims"},
+    {"prompt_id": "PR-02", "version": "verification-gpt4o-v1", "agent": "Verification Agent", "file": "verification_azure_v1.system.txt",
+     "model": "Azure gpt-4o", "used_when": "every Azure-mode draft",
+     "inputs": "draft answer and the exact passages it may cite", "output": "JSON {supported, reason}; parse failure means block",
+     "requirement_ids": ["FR07"], "status": "configured; advisory to deterministic guardrails"},
+    {"prompt_id": "PR-03", "version": "answer-extractive-v2", "agent": "Answer Agent", "file": "answer_extractive_v2.md",
+     "model": "none (deterministic template)", "used_when": "default extractive mode; the unattended assessment path",
+     "inputs": "selected Resolution passage plus same-document Common causes and Notes",
+     "output": "every factual line is a verbatim span with its passage ID",
+     "requirement_ids": ["FR07", "FR10"], "status": "in use; every line checked by PR-04"},
+    {"prompt_id": "PR-04", "version": "verification-exact-span-v2", "agent": "Verification Agent", "file": "verification_exact_span_v2.md",
+     "model": "none (deterministic)", "used_when": "every extractive draft",
+     "inputs": "draft and cited passages", "output": "per-line supported/unsupported verdicts",
+     "requirement_ids": ["FR07"], "status": "in use"},
+    {"prompt_id": "PR-05", "version": "triage-v2-deterministic", "agent": "Triage Agent", "file": "triage_v2.md",
+     "model": "none; o3-mini experiment deferred", "used_when": "calibrated intent confidence below the policy threshold",
+     "inputs": "ticket and classifier alternatives", "output": "escalate recommendation with ranked intent options for the handoff",
+     "requirement_ids": ["FR03", "FR08"], "status": "in use"}
+  ],
+  "change_log": [
+    {"date": "2026-11-16", "change": "PR-01, PR-02 introduced inline in agents.py"},
+    {"date": "2026-11-17", "change": "Prompts moved to versioned files loaded at runtime; PR-03..PR-05 documented after policy v2 (PRD revision R1)"}
+  ]
+}

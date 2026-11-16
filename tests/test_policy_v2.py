@@ -132,3 +132,13 @@ def test_kill_switch_api_round_trip(tmp_path, monkeypatch):
         assert status == 200 and state["active"] is False
 
     asyncio.run(scenario())
+
+
+def test_prompt_registry_files_exist_and_load():
+    from cloudserve.agents import prompt
+
+    registry = json.loads((ROOT / "prompts/registry.json").read_text())
+    for item in registry["prompts"]:
+        assert (ROOT / "prompts" / item["file"]).exists() and item["requirement_ids"]
+    assert "ABSTAIN" in prompt("answer_azure_v1.system.txt")
+    assert '"supported"' in prompt("verification_azure_v1.system.txt")

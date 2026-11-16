@@ -3,6 +3,7 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY src ./src
+COPY prompts ./prompts
 COPY data/supplied ./data/supplied
 ENV PYTHONPATH=/app/src
 EXPOSE 8000
