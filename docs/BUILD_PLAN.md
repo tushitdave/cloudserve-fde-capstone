@@ -2,11 +2,11 @@
 
 **Purpose:** This is the single execution checklist and restart record for the application. Update it after each work session so the next session can see what is done, what failed, what evidence exists, and what to do next. The [architecture](architecture.md) defines *what* to build; this document tracks *when it is actually working*.
 
-**Last reviewed:** 16 November 2026
+**Last reviewed:** 17 November 2026
 
 **Project root for code:** `CloudServe_App/`
 
-**Overall state:** local end-to-end prototype implemented and batch tested; 43 backend tests and React production build pass, while live browser, dense Azure index and deployment checks remain open.
+**Overall state:** policy v2 (calibrated classifier, versioned rules, kill switch, data-selected thresholds) answers 72.8% of development and 68.8% of visible validation tickets with zero protected false-auto; 64 backend tests and the React build pass. Live browser, dense Azure index, fresh-install/CI and deployment checks remain open.
 
 **Next milestone:** close A1–A12 clean-startup/browser gaps, independent gold review, API security and submission artifacts.
 **Status notation:** `[x]` verified complete · `[ ]` open. A task is complete only when its stated proof is saved. Record blocked work in the session log; do not silently mark it done.
@@ -112,13 +112,13 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 
 | Done | ID | Task | Proof / completion condition |
 |---|---|---|---|
-| [ ] | P3-01 | Inventory the 29 articles with stable source ID, owner, version/hash and approved authority. | Source manifest reconciles to supplied corpus; no reference answer indexed. |
-| [ ] | P3-02 | Parse supplied JSON into canonical documents with section/step boundaries and exact offsets. | Sampled fidelity review; original text reconstructable. |
-| [ ] | P3-03 | Add Source Intake Agent for uncertain/failed formats only; safe parser catalog or quarantine. | Unknown/corrupt/unsafe fixtures are quarantined; no arbitrary fetch. |
-| [ ] | P3-04 | Add Knowledge Steward Agent for missing steps, duplicates, conflicting sources and candidate taxonomy links. | Human-review examples with source spans and reasons. |
+| [x] | P3-01 | Inventory the 29 articles with stable source ID, owner, version/hash and approved authority. | Source manifest reconciles to supplied corpus; no reference answer indexed. |
+| [x] | P3-02 | Parse supplied JSON into canonical documents with section/step boundaries and exact offsets. | Sampled fidelity review; original text reconstructable. |
+| [x] | P3-03 | Add Source Intake Agent for uncertain/failed formats only; safe parser catalog or quarantine. | Unknown/corrupt/unsafe fixtures are quarantined; no arbitrary fetch. |
+| [x] | P3-04 | Add Knowledge Steward Agent for missing steps, duplicates, conflicting sources and candidate taxonomy links. | Human-review examples with source spans and reasons. |
 | [x] | P3-05 | Add HITL knowledge certification and versioned approval record; agent cannot publish. | Changed/conflicting source requires approval; rejected source absent from index. |
-| [ ] | P3-06 | Implement chunking with stable passage ID, parent section, source version, offsets and inherited permissions. | Exact passage lookup and full procedure-step integrity tests. |
-| [ ] | P3-07 | Implement idempotent ingestion, checkpoint/retry, quarantine and atomic index publication. | Duplicate source/version creates no duplicates; interrupted job resumes; old index remains usable. |
+| [x] | P3-06 | Implement chunking with stable passage ID, parent section, source version, offsets and inherited permissions. | Exact passage lookup and full procedure-step integrity tests. |
+| [x] | P3-07 | Implement idempotent ingestion, checkpoint/retry, quarantine and atomic index publication. | Duplicate source/version creates no duplicates; interrupted job resumes; old index remains usable. |
 
 ### P4 — Retrieval and evidence gates (G2 → G3)
 
@@ -129,19 +129,19 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 | [ ] | P4-03 | Enforce tenant/role/source permissions before any passage reaches an agent prompt or cache. | Unauthorized retrieval fixture returns zero disallowed passages. |
 | [ ] | P4-04 | Label passage-level relevance and no-answer cases; compare Recall@1/3/5, MRR and no-answer specificity. | Versioned gold file, evaluation script and results by intent/language fluency. |
 | [ ] | P4-05 | Choose chunk size, hybrid weighting, optional reranker and relevance threshold from measured tradeoffs. | Decision record with quality, p95 latency and cost; weak evidence abstains. |
-| [ ] | P4-06 | Implement Evidence Agent with query planning, maximum two searches and structured `EvidenceBundle`. | Query-rewrite gain/harm measured; insufficient/tool-error becomes escalation. |
+| [x] | P4-06 | Implement Evidence Agent with query planning, maximum two searches and structured `EvidenceBundle`. | Query-rewrite gain/harm measured; insufficient/tool-error becomes escalation. |
 
 ### P5 — Classification ML, policy and routing (G3)
 
 | Done | ID | Task | Proof / completion condition |
 |---|---|---|---|
-| [ ] | P5-01 | Split development tickets by near-duplicate group; reserve calibration set, keep 80-ticket validation separate. | Split manifest, label counts and leakage check. |
-| [ ] | P5-02 | Train/evaluate conventional intent and urgency baselines, including `unknown` fallback and alternatives. | Per-class precision/recall, macro F1 and confusion matrix. |
-| [ ] | P5-03 | Calibrate numeric probabilities and version model/calibrator. | Reliability plot, ECE/Brier; no raw similarity presented as probability. |
-| [ ] | P5-04 | Implement versioned business rules: protected intents, `must_not_auto_respond`, priority, evidence eligibility, forbidden commitments, kill switch and effective dates. | Rule fixtures, conflict/priority tests, human approval record. |
-| [ ] | P5-05 | Implement deterministic `QueryPlan` and route selection (`rule`, approved-document RAG, human). | Same input + versions yields same decision/reason; unsupported paths fall back to human. |
+| [x] | P5-01 | Split development tickets by near-duplicate group; reserve calibration set, keep 80-ticket validation separate. | Split manifest, label counts and leakage check. |
+| [x] | P5-02 | Train/evaluate conventional intent and urgency baselines, including `unknown` fallback and alternatives. | Per-class precision/recall, macro F1 and confusion matrix. |
+| [x] | P5-03 | Calibrate numeric probabilities and version model/calibrator. | Reliability plot, ECE/Brier; no raw similarity presented as probability. |
+| [x] | P5-04 | Implement versioned business rules: protected intents, `must_not_auto_respond`, priority, evidence eligibility, forbidden commitments, kill switch and effective dates. | Rule fixtures, conflict/priority tests, human approval record. |
+| [x] | P5-05 | Implement deterministic `QueryPlan` and route selection (`rule`, approved-document RAG, human). | Same input + versions yields same decision/reason; unsupported paths fall back to human. |
 | [ ] | P5-06 | Add conditional Triage Agent for low confidence/conflicting signals only. | Incremental gain versus ML alone; protected cases never overridden. |
-| [ ] | P5-07 | Select thresholds from risk–coverage analysis, including zero protected false-auto on test cases. | Versioned threshold rationale and regression tests. |
+| [x] | P5-07 | Select thresholds from risk–coverage analysis, including zero protected false-auto on test cases. | Versioned threshold rationale and regression tests. |
 
 ### P6 — Grounded answer, verification and HITL handoff (G4)
 
@@ -150,8 +150,8 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 | [ ] | P6-01 | Version prompts and tool allowlists for all six agents; specify per-agent input/output, timeout, call budget and failure behavior. | Prompt files, contract tests and trace spans; no unbounded loops. |
 | [ ] | P6-02 | Implement Answer Agent using only authorized `EvidenceBundle` and claim-level source IDs. | `must_mention` coverage and fabricated-citation tests. |
 | [ ] | P6-03 | Implement Verification Agent for every generated draft; compare GPT-4o versus conditional o3-mini/NLI on human-labelled claims. | Unsafe-claim recall, false-block rate, latency and cost comparison. |
-| [ ] | P6-04 | Implement independent deterministic validator for schema, exact citation/version, permission, PII/secrets and forbidden commitments. | Engineered unsafe response is blocked; findings recorded even on pass. |
-| [ ] | P6-05 | Implement release gateway with policy + evidence + verification + validator gates. | Only validated eligible answers reach `sent`; failure becomes logged escalation. |
+| [x] | P6-04 | Implement independent deterministic validator for schema, exact citation/version, permission, PII/secrets and forbidden commitments. | Engineered unsafe response is blocked; findings recorded even on pass. |
+| [x] | P6-05 | Implement release gateway with policy + evidence + verification + validator gates. | Only validated eligible answers reach `sent`; failure becomes logged escalation. |
 | [ ] | P6-06 | Build `EscalationPacket` with summary, route/priority, known/unknown, source links, reasons and next verification step. | Support reviewer can act without rereading full trace; no unvalidated draft presented as fact. |
 | [ ] | P6-07 | Add human resolution and correction events; reviewed lessons feed KB/rules only through approval. | Auditable HITL action; prior event preserved. |
 | [ ] | P6-08 | Implement typed `ContextEnvelope` and central context assembler for every agent call. | Trusted/untrusted separation, permission/version checks, token budget and truncation/abstention fixtures pass. |
@@ -212,12 +212,12 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 |---|---|---|---|
 | A1 clean checkout | README commands succeed in fresh directory | P0-01–07, P9-06 | Open |
 | A2 four channels | One normalized ticket from each channel | P2-03 | Open |
-| A3 intent, urgency, numeric confidence | Every result carries both labels and `[0,1]` scores | P5-01–03 | Open |
+| A3 intent, urgency, numeric confidence | Every result carries both labels and `[0,1]` scores | P5-01–03 | Local pass: calibrated on held-out split (intent ECE 0.002) |
 | A4 real retrieval passages | Search IDs resolve to exact supplied corpus text | P3-01–07, P4-01–05 | Open |
-| A5 deterministic threshold routing | Same input/version yields same route/reason | P5-04–07 | Open |
+| A5 deterministic threshold routing | Same input/version yields same route/reason | P5-04–07 | Local pass: thresholds from recorded risk–coverage selection; repeat test |
 | A6 resolvable citations | Draft claims cite passages actually retrieved | P4-06, P6-02, P6-04 | Open |
-| A7 blocking guardrail | Engineered unsafe response never sent | P6-03–05, P8-04 | Open |
-| A8 persistent decision log | Logs and ticket totals reconcile | P2-04–07, P9-01 | Open |
+| A7 blocking guardrail | Engineered unsafe response never sent | P6-03–05, P8-04 | Local pass: instruction-override ticket and injected unsafe drafts blocked |
+| A8 persistent decision log | Logs and ticket totals reconcile | P2-04–07, P9-01 | Local pass: Governance-format `decision` event per ticket; P9-01 cost/timing open |
 | A9 unattended full set | Arbitrary-path run finishes with no missing IDs | P2-06, P8-06, P8-08 | Open |
 | A10 automatic metrics | Report emitted by same run | P8-05–07 | Open |
 | A11 failure handling | No hit, timeout, outage, rate limit, malformed input all terminal | P2-03, P6-06, P8-04, P9-02 | Local pass; live provider and persistence recovery open |
@@ -351,3 +351,26 @@ P8-07 is checked for honest measurement/reporting: `evaluation/quality_report.py
 P0-07 source-checkout rehearsal passed in a local Git clone; [rehearsal log](rehearsal_log.md) records OS, tool versions, commands, 43 tests, React build and 80/80 batch reconciliation. Python dependencies were reused from an existing interpreter, so P0-04/P9-06 and A1/A12 fresh-environment proof remain open. The repository now has an initial local commit, with no remote configured; generated artifacts, runtime databases and `.env` are ignored.
 
 P0-02 is partially improved: `requirements.txt` now pins all 26 packages in the tested Python 3.14.6 dependency closure, and `pyproject.toml` separates runtime from dev requirements. A local metadata check verified every pin equals the installed version. Fresh Python 3.12 install remains unverified, so P0-02 stays open. The frontend lockfile did pass `npm ci --offline` in the clone.
+
+P3-01/P3-02 completed: `data/manifests/source_manifest_v1.json` inventories all 29 approved documents with stable IDs, owner, authority, SHA-256, short source versions and 145 passage counts. `canonicalize_documents()` retains original text plus 145 section spans and 116 numbered-step spans. `tests/test_source_manifest.py` verifies every offset against the original source and confirms the active index contains exactly the 29 supplied document IDs, not reference-answer IDs. Full suite **44 passed**, React build passed.
+
+P3-06 completed: each passage now carries inherited source permissions, section, source version and exact offsets. An attempted permission change during source staging is quarantined until an authorization design exists. Tests verify every numbered resolution step remains inside its parent Resolution passage and explicit source permissions propagate to all chunks. `scripts/test.sh`: **45 passed** plus React build. Tenant/role enforcement at retrieval remains separately open under P4-03/P9-03.
+
+P3-07 completed for the local SQLite pipeline: `tests/test_knowledge_pipeline.py::test_job_checkpoint_resume_and_atomic_visibility` shows duplicate staging returns one job, a reviewed job survives service restart, the old approved index stays readable until publication, and the new revision appears only after the atomic publish. Quarantine and stale-base tests remain green. `scripts/test.sh`: **46 passed** plus React build. Distributed worker retry and multi-tenant source enforcement are separate production extensions.
+
+P3-03 completed for the supplied JSON source format: known complete JSON takes the deterministic approved parser path; Source Intake is invoked only for uncertain/incomplete or unsupported formats and can only recommend the approved JSON parser or quarantine. Unknown PDF and incomplete owner fixtures are quarantined, as are unsafe source-text fixtures. No arbitrary fetch tool exists. `scripts/test.sh`: **47 passed** plus React build. PDF parsing itself is outside the current capstone corpus.
+
+P3-04 completed: Knowledge Steward returns warnings for missing resolution steps, duplicate content and conflicting article titles, plus exact review spans and up to three candidate same-category taxonomy links. `tests/test_knowledge_pipeline.py::test_steward_flags_duplicate_conflict_and_candidate_links` exercises all of these. The review job exposes warnings/spans to the human; the agent cannot publish. `scripts/test.sh`: **48 passed** plus React build.
+
+P4-06 completed: Evidence Agent now returns typed `QueryPlan` and `EvidenceBundle` with source revision, searches, queries, sufficiency and reason. `evaluation/query_rewrite_eval.py` measured document-label candidate gain/harm and bounded search on both supplied sets; [diagnostic summary](evidence_rewrite_snapshot.md) states its in-sample and passage-gold limits. Insufficient evidence and tool errors still escalate. `scripts/test.sh`: **50 passed** plus React build, and the full diagnostic found zero two-search budget violations.
+
+Fresh full batches after the typed Evidence Agent change processed **500 development** (46 sent, 454 escalated) and **80 visible validation** (3 sent, 77 escalated) in `evaluation/reports/dev-evidence-v2/` and `validation-evidence-v2/`, each with exact terminal/decision reconciliation. No customer-facing route changed.
+
+### Step 2 session — routing, calibration and policy v2 (17 November 2026)
+
+- **Task IDs:** P5-01, P5-02, P5-03, P5-04, P5-05, P5-07, P6-04 and P6-05 are checked. P5-06 (Triage incremental gain), P6-06 (reviewer usability of packets) and P9-01 (cost/timing in traces) remain open.
+- **Finding:** v1 escalated 90.8% of tickets. The answerability gate behind 197 of those wrong escalations has held-out AUC 0.32–0.55, because identical non-protected text carries opposite labels in 40 of 191 groups. 62 of 80 validation bodies duplicate development text. Three v1 regexes were fitted to validation tickets and have been removed. Details: [PRD revision R1](PRD_revision_log.md), F07–F09 in the [problem statement](problem_statement.md).
+- **Changed files:** `classifier.py` (train-split fit, temperature calibration, novelty similarity), `policy.py` + `policy_v2.json` (versioned rules R-00–R-07, kill switch, thresholds), `guardrails.py` (new; pass/fail records), `agents.py` (Evidence scope, full cited extractive answer, exact-span verifier, Triage options), `service.py` (flow, Governance decision record, packet next steps), `api/routes/policy.py` (active policy, kill switch), `evaluation/threshold_selection.py`, `evaluation/fixtures/out_of_scope_v1.json`, `evaluation/harness.py` (business/governance/fairness/calibration blocks), `tests/test_policy_v2.py`, React overview kill-switch panel and demo samples.
+- **Proof:** `CLOUDSERVE_PYTHON=… ./scripts/test.sh` gave architecture check OK, **64 passed**, React build OK. `evaluation.threshold_selection` used the calibration split only: 1,680 configurations, chosen intent 0.90 / similarity 0.35 / document 0.30 / evidence 0.06, coverage 79.6%, wrong article 2.4%, protected 0, out-of-scope 0 (`data/manifests/threshold_selection_v1.json`). Batch `development-policy-v2`: 364 sent / 136 escalated, safe-auto recall 0.865, protected false-auto 0, wrong-article 1.9% of sent, reconciliation true. Batch `validation-policy-v2`: 55 / 25, recall 0.812, protected 0, wrong-article 1.8%, reconciliation true. Calibration record: `data/manifests/calibration_report_v1.json`.
+- **Not met / limits:** the fluency gap is 7.1 points on development (<5 required) and the region gap is 12.7 points. Urgency is 50% on held-out data. 90 dev / 15 validation answers went to label-`escalate` tickets and need human review. Hallucination and semantic citation accuracy remain unmeasured. The visible validation set was run twice under v2 with identical counts; no threshold was changed after it.
+- **Next:** commit; fresh-install + CI (P0-02/04/05); live browser demo; dense retrieval for the fluency gap (P4); two-person answer review (P8-02/03); governance register (P9-07); workbooks/report (P10).

@@ -35,6 +35,10 @@ PYTHONPATH=src python scripts/build_dense_index.py
 
 This writes a version-checked, 1536-dimensional index under ignored `data/runtime/`. Search then reranks lexical candidates with Azure dense similarity. It falls back to lexical ranking on embedding query failure. The supplied reference answers are never indexed as answer authority.
 
+## Policy, thresholds and kill switch
+
+Routing rules live in `src/cloudserve/policy_v2.json`: versioned, each with evidence and requirement IDs. Thresholds are selected on the held-out calibration split by `PYTHONPATH=src:. python -m evaluation.threshold_selection`, which writes `data/manifests/threshold_selection_v1.json`. To stop all automatic answers immediately, use the Overview page, `POST /v1/policy/kill-switch` with `{"active": true, "operator": "...", "reason": "..."}`, or start with `CLOUDSERVE_AUTO_SEND_DISABLED=1`. See [PRD revision R1](docs/PRD_revision_log.md) and the [evaluation snapshot](docs/evaluation_snapshot.md).
+
 ## Test and evaluate
 
 ```bash
@@ -51,7 +55,7 @@ The [offline evaluation snapshot](docs/evaluation_snapshot.md) gives denominator
 
 ## API
 
-`POST /v1/tickets`, `GET /v1/tickets`, `GET /v1/tickets/{id}`, `GET /v1/tickets/{id}/decision`, `GET /v1/escalations`, `POST /v1/escalations/{id}/resolve`, `POST /v1/feedback`, `GET /v1/knowledge/documents`, `GET /v1/knowledge/indexes/active`, `GET /v1/knowledge/passages/{id}`, and `GET /v1/metrics`. Ticket IDs are idempotent for the same input; a different input with an existing ID returns 409. Accepted tickets have one persisted terminal state and decision log. A human reviewer can record an outcome for an escalated ticket; this adds an audit event and removes it from the open queue without changing the original terminal result or sending a customer message. Duplicate identical resolutions return the existing record; a conflicting second resolution returns 409.
+`POST /v1/tickets`, `GET /v1/tickets`, `GET /v1/tickets/{id}`, `GET /v1/tickets/{id}/decision`, `GET /v1/escalations`, `POST /v1/escalations/{id}/resolve`, `POST /v1/feedback`, `GET /v1/knowledge/documents`, `GET /v1/knowledge/indexes/active`, `GET /v1/knowledge/passages/{id}`, `GET /v1/metrics`, `GET /v1/policy/active` and `GET|POST /v1/policy/kill-switch`. Ticket IDs are idempotent for the same input; a different input with an existing ID returns 409. Accepted tickets have one persisted terminal state and decision log. A human reviewer can record an outcome for an escalated ticket; this adds an audit event and removes it from the open queue without changing the original terminal result or sending a customer message. Duplicate identical resolutions return the existing record; a conflicting second resolution returns 409.
 
 The [knowledge pipeline](docs/knowledge_pipeline.md) adds `POST/GET /v1/knowledge/jobs`, `POST /v1/knowledge/jobs/{id}/approve|reject|publish`, `GET /v1/knowledge/documents/{id}`, `GET /v1/knowledge/documents/{id}/versions`, and `GET /v1/knowledge/documents/{id}/lineage?source_version=...`. The Knowledge page shows the 29 supplied articles, active and historical passages, citation links, staged updates, quarantine reasons and review actions. Restart a backend started without `--reload` to see these routes.
 
