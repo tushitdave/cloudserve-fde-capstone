@@ -1,6 +1,7 @@
 """Approved supplied-article ingestion and passage-level lexical retrieval."""
 
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from cloudserve.azure import ModelUnavailable, embed
 from cloudserve.config import runtime_dir
-from cloudserve.contracts import Passage
+from cloudserve.contracts import CanonicalDocument, Passage, SourceSpan
 from cloudserve.knowledge_store import KnowledgeStore, _content_hash
 
 
@@ -45,8 +46,30 @@ def passages_from_documents(docs: list[dict]) -> list[Passage]:
                     title=doc["title"], section=section, text=text, score=0.0,
                     source_version=version,
                     start_offset=start, end_offset=end,
+                    permissions=doc.get("permissions", ["customer_support"]),
                 ))
     return passages
+
+
+def canonicalize_documents(docs: list[dict]) -> list[CanonicalDocument]:
+    """Retain original article text with exact section and numbered-step spans."""
+    canonical = []
+    for doc in docs:
+        content = doc["content"]
+        sections = [SourceSpan(label=label, start_offset=start, end_offset=end, text=text)
+                    for label, text, start, end in _sections(content)]
+        steps = []
+        for match in re.finditer(r"(?m)^([0-9]+)\. [^\n]+", content):
+            start, end = match.span()
+            parent = next((section.label for section in sections if section.start_offset <= start < section.end_offset), None)
+            steps.append(SourceSpan(label=f"Step {match.group(1)}", parent_section=parent,
+                                    start_offset=start, end_offset=end, text=match.group()))
+        canonical.append(CanonicalDocument(doc_id=doc["doc_id"], title=doc["title"], content=content,
+                                           owner=doc.get("owner", "supplied_capstone_pack"),
+                                           source_version=_content_hash(doc), related_docs=doc.get("related_docs", []),
+                                           sections=sections, steps=steps,
+                                           permissions=doc.get("permissions", ["customer_support"])))
+    return canonical
 
 
 @lru_cache(maxsize=8)
@@ -83,6 +106,11 @@ def retrieve(query: str, limit: int = 3, allowed_doc_ids: set[str] | None = None
             pass
     top = top[:limit]
     return [passages[i].model_copy(update={"score": round(float(scores[i]), 4)}) for i in top if scores[i] >= 0.06]
+
+
+def document_passages(doc_id: str) -> list[Passage]:
+    """All active approved passages of one document, in source order."""
+    return [p for p in index()[0] if p.doc_id == doc_id]
 
 
 def search_candidates(query: str, strategy: str = "lexical", limit: int = 5,

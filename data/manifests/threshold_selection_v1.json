@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "dataset": "development calibration split (data/manifests/development_split_v1.json)",
+  "visible_validation_used": false,
+  "tickets": 103,
+  "classifier_version": "tfidf-logreg-v2+temperature",
+  "constraints": {
+    "protected_false_auto": 0,
+    "out_of_scope_fixture_sent": 0,
+    "max_wrong_article_rate": 0.05
+  },
+  "out_of_scope_fixture": "evaluation/fixtures/out_of_scope_v1.json",
+  "out_of_scope_tickets": 12,
+  "objective": "maximise automatic coverage subject to constraints; tie-break toward stricter thresholds",
+  "chosen": {
+    "intent_confidence": 0.9,
+    "min_training_similarity": 0.35,
+    "document_confidence": 0.3,
+    "evidence_score": 0.06,
+    "sent": 82,
+    "coverage": 0.7961,
+    "protected_false_auto": 0,
+    "wrong_article": 2,
+    "wrong_article_rate": 0.0244,
+    "label_escalate_but_sent": 17,
+    "safe_auto": 64,
+    "safe_auto_recall": 0.9014,
+    "out_of_scope_sent": 0
+  },
+  "evidence_risk_coverage_curve_at_other_chosen_thresholds": {
+    "0.04": {
+      "coverage": 0.7961,
+      "wrong_article_rate": 0.0244,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.9014
+    },
+    "0.06": {
+      "coverage": 0.7961,
+      "wrong_article_rate": 0.0244,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.9014
+    },
+    "0.08": {
+      "coverage": 0.7476,
+      "wrong_article_rate": 0.026,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.8592
+    },
+    "0.1": {
+      "coverage": 0.6699,
+      "wrong_article_rate": 0.0145,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.7887
+    },
+    "0.11": {
+      "coverage": 0.6019,
+      "wrong_article_rate": 0.0161,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.7042
+    },
+    "0.12": {
+      "coverage": 0.6019,
+      "wrong_article_rate": 0.0161,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.7042
+    },
+    "0.14": {
+      "coverage": 0.5728,
+      "wrong_article_rate": 0.0169,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.662
+    },
+    "0.16": {
+      "coverage": 0.4466,
+      "wrong_article_rate": 0.0,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.507
+    },
+    "0.18": {
+      "coverage": 0.3689,
+      "wrong_article_rate": 0.0,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.4225
+    },
+    "0.2": {
+      "coverage": 0.3204,
+      "wrong_article_rate": 0.0,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.3803
+    }
+  },
+  "grid_size": 1680,
+  "eligible_configurations": 1288,
+  "label_noise_note": "Identical ticket text carries different expected_route/answerable labels in 40 of 191 duplicate-text groups of non-protected tickets (dev+validation). label_escalate_but_sent therefore cannot be driven to zero by any text-based rule and is reported, not optimised."
+}

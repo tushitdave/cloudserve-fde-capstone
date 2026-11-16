@@ -38,18 +38,20 @@
       "title": "End Offset",
       "type": "integer"
     },
-    "schema_version": {
-      "default": "1.0",
-      "title": "Schema Version",
-      "type": "string"
-    },
     "permissions": {
-      "default": [],
+      "default": [
+        "customer_support"
+      ],
       "items": {
         "type": "string"
       },
       "title": "Permissions",
       "type": "array"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
     }
   },
   "required": [

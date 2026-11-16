@@ -28,6 +28,8 @@ class Classification(BaseModel):
     urgency_confidence: float = Field(ge=0, le=1)
     answerability_confidence: float = Field(default=0, ge=0, le=1)
     alternatives: list[dict] = []
+    urgency_alternatives: list[dict] = []
+    nearest_training_similarity: float = Field(default=1, ge=0, le=1)
     model_version: str = "tfidf-logreg-v1"
     calibrated: bool = False
 
@@ -42,6 +44,7 @@ class Passage(BaseModel):
     source_version: str
     start_offset: int = 0
     end_offset: int = 0
+    permissions: list[str] = ["customer_support"]
 
 
 class Decision(BaseModel):
@@ -50,6 +53,8 @@ class Decision(BaseModel):
     reason: str
     policy_version: str = "policy-v1"
     threshold: float
+    rule_ids_fired: list[str] = []
+    thresholds_applied: dict = {}
 
 
 class EscalationPacket(BaseModel):
@@ -85,6 +90,7 @@ class TicketResult(BaseModel):
     escalation_packet: EscalationPacket | None = None
     human_resolution: HumanResolution | None = None
     guardrail_findings: list[str] = []
+    guardrail_results: list[dict] = []
     agent_steps: list[str] = []
     completed_at: str = Field(default_factory=utc_now)
     latency_ms: int = 0
@@ -117,6 +123,21 @@ class EvidenceBundle(BaseModel):
     searches: int = Field(ge=0, le=2)
     sufficient: bool
     reason: str = ""
+    queries: list[str] = Field(default_factory=list, max_length=2)
+    document_id: str | None = None
+    document_confidence: float = Field(default=0, ge=0, le=1)
+    top_score: float = 0
+    supporting_passages: list[Passage] = []
+
+
+class QueryPlan(BaseModel):
+    schema_version: str = "1.0"
+    ticket_id: str = Field(min_length=1)
+    path: Literal["rule", "approved_document", "human"]
+    query: str
+    allowed_doc_ids: list[str]
+    max_searches: int = Field(ge=0, le=2)
+    source_revision: int = Field(ge=0)
 
 
 class RoutingDecision(Decision):
@@ -172,6 +193,14 @@ class KnowledgeWorkItem(BaseModel):
     source_hash: str = Field(min_length=12)
 
 
+class SourceSpan(BaseModel):
+    label: str = Field(min_length=1)
+    parent_section: str | None = None
+    start_offset: int = Field(ge=0)
+    end_offset: int = Field(gt=0)
+    text: str = Field(min_length=1)
+
+
 class CanonicalDocument(BaseModel):
     schema_version: str = "1.0"
     doc_id: str = Field(min_length=1)
@@ -180,11 +209,13 @@ class CanonicalDocument(BaseModel):
     owner: str = Field(min_length=1)
     source_version: str = Field(min_length=12)
     related_docs: list[str] = []
+    sections: list[SourceSpan] = []
+    steps: list[SourceSpan] = []
+    permissions: list[str] = ["customer_support"]
 
 
 class KnowledgeChunk(Passage):
     schema_version: str = "1.0"
-    permissions: list[str] = []
 
 
 class IndexManifest(BaseModel):

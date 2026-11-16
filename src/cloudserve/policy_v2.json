@@ -1,0 +1,138 @@
+{
+  "policy_version": "policy-v2",
+  "effective_from": "2026-11-17",
+  "owner": "Head of Customer Support (policy owner); FDE student (implementer)",
+  "approval": "Approved for the capstone prototype by the student acting as policy owner; requires CloudServe sign-off before any live use.",
+  "change_note": "Replaces policy-v1. Removes three text patterns that were written against specific visible-validation tickets, removes the answerability-classifier gate (held-out AUC 0.32-0.55, i.e. no better than chance), adds billing-dispute, account-compromise and data-location-assurance rules from interview evidence, adds a kill switch, and loads thresholds from a recorded risk-coverage selection.",
+  "thresholds": {
+    "intent_confidence": 0.9,
+    "min_training_similarity": 0.35,
+    "document_confidence": 0.3,
+    "evidence_score": 0.06,
+    "selected_by": "evaluation/threshold_selection.py on the held-out calibration split only",
+    "selection_record": "data/manifests/threshold_selection_v1.json",
+    "calibration_split_result": {
+      "coverage": 0.7961,
+      "wrong_article_rate": 0.0244,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.9014
+    }
+  },
+  "rules": [
+    {
+      "rule_id": "R-00",
+      "priority": 0,
+      "name": "kill_switch",
+      "kind": "kill_switch",
+      "action": "escalate",
+      "reason": "Automatic answers are switched off by an operator; every ticket goes to a person.",
+      "evidence": "Governance Framework section 5: a kill switch that works without a deployment.",
+      "requirement_ids": [
+        "NFR05",
+        "GOV-KILL"
+      ]
+    },
+    {
+      "rule_id": "R-01",
+      "priority": 10,
+      "name": "protected_intent",
+      "kind": "intent_in",
+      "intents": [
+        "security_incident",
+        "compliance_request",
+        "feature_request",
+        "unclear_request"
+      ],
+      "action": "escalate",
+      "reason": "This type of request always needs a specialist.",
+      "evidence": "Dataset: 101/101 of these intents are labelled must_not_auto_respond. Sofia: security is escalated every time. Ines: no article exists for feature requests or roadmap.",
+      "requirement_ids": [
+        "FR04"
+      ]
+    },
+    {
+      "rule_id": "R-02",
+      "priority": 20,
+      "name": "security_signal",
+      "kind": "text_pattern",
+      "pattern": "\\b(breach|breached|compromised|hacked|exposed secret|leaked (api )?key|security incident|malware|phishing)\\b",
+      "action": "escalate",
+      "reason": "The message mentions a possible security incident.",
+      "evidence": "Daniel: anything touching security or account compromise must not be automated.",
+      "requirement_ids": [
+        "FR04"
+      ]
+    },
+    {
+      "rule_id": "R-03",
+      "priority": 21,
+      "name": "account_compromise_signal",
+      "kind": "text_pattern",
+      "pattern": "\\b(unauthori[sz]ed (login|access|sign.?in)|suspicious (login|sign.?in|activity)|someone else (logged|signed) in|account (was |has been )?taken over)\\b",
+      "action": "escalate",
+      "reason": "The message suggests the account may be compromised.",
+      "evidence": "Daniel: account compromise is a protected category.",
+      "requirement_ids": [
+        "FR04"
+      ]
+    },
+    {
+      "rule_id": "R-04",
+      "priority": 22,
+      "name": "legal_compliance_signal",
+      "kind": "text_pattern",
+      "pattern": "\\b(gdpr|subpoena|regulator|compliance request|legal hold|lawyer|court order|data protection officer)\\b",
+      "action": "escalate",
+      "reason": "The message raises a legal or regulatory question.",
+      "evidence": "Marcus: compliance review in the autumn; Daniel: compliance consequences.",
+      "requirement_ids": [
+        "FR04"
+      ]
+    },
+    {
+      "rule_id": "R-05",
+      "priority": 23,
+      "name": "roadmap_signal",
+      "kind": "text_pattern",
+      "pattern": "\\b(feature request|roadmap|when will you (add|support|release)|please add a feature|eta for (the )?(feature|fix))\\b",
+      "action": "escalate",
+      "reason": "Roadmap and timing questions have no approved answer.",
+      "evidence": "Ines: anything about roadmap or timing is not covered by the knowledge base.",
+      "requirement_ids": [
+        "FR04",
+        "FR06"
+      ]
+    },
+    {
+      "rule_id": "R-06",
+      "priority": 24,
+      "name": "billing_dispute_signal",
+      "kind": "text_pattern",
+      "pattern": "\\b(refund|chargeback|dispute|disputing|credit note|compensation|money back|waive (the )?(fee|charge))\\b",
+      "action": "escalate",
+      "reason": "Billing disputes can become contractual; a person must decide.",
+      "evidence": "Daniel: nothing automated should be making commitments about money.",
+      "requirement_ids": [
+        "FR04",
+        "NFR05"
+      ]
+    },
+    {
+      "rule_id": "R-07",
+      "priority": 25,
+      "name": "data_location_assurance",
+      "kind": "intent_and_pattern",
+      "intents": [
+        "data_residency"
+      ],
+      "pattern": "\\b(compliance review|definite answer|guarantee|legally|audit|contractual)\\b",
+      "action": "escalate",
+      "reason": "A definitive data-location assurance for compliance needs a specialist.",
+      "evidence": "Daniel: data location answers are sometimes wrong even from humans and the consequence is a compliance problem. Accepted cost: 13 labelled auto-respond tickets in dev+validation match this rule.",
+      "requirement_ids": [
+        "FR04"
+      ]
+    }
+  ]
+}

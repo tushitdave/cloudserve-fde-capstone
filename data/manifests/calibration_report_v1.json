@@ -1,0 +1,85 @@
+{
+  "model_version": "tfidf-logreg-v2+temperature",
+  "calibration_rows": 103,
+  "heads": {
+    "intent": {
+      "temperature": 0.05,
+      "accuracy": 1.0,
+      "ece": 0.0016,
+      "brier_top_label": 0.0002,
+      "bands": [
+        {
+          "band": [
+            0.8,
+            0.9
+          ],
+          "count": 1,
+          "stated": 0.8405,
+          "observed": 1.0
+        },
+        {
+          "band": [
+            0.9,
+            1.0
+          ],
+          "count": 102,
+          "stated": 1.0,
+          "observed": 1.0
+        }
+      ]
+    },
+    "urgency": {
+      "temperature": 1.0516,
+      "accuracy": 0.5049,
+      "ece": 0.0554,
+      "brier_top_label": 0.2508,
+      "bands": [
+        {
+          "band": [
+            0.3,
+            0.4
+          ],
+          "count": 14,
+          "stated": 0.381,
+          "observed": 0.5714
+        },
+        {
+          "band": [
+            0.4,
+            0.5
+          ],
+          "count": 57,
+          "stated": 0.4458,
+          "observed": 0.4561
+        },
+        {
+          "band": [
+            0.5,
+            0.6
+          ],
+          "count": 25,
+          "stated": 0.5366,
+          "observed": 0.48
+        },
+        {
+          "band": [
+            0.6,
+            0.7
+          ],
+          "count": 2,
+          "stated": 0.616,
+          "observed": 1.0
+        },
+        {
+          "band": [
+            0.7,
+            0.8
+          ],
+          "count": 5,
+          "stated": 0.7458,
+          "observed": 0.8
+        }
+      ]
+    }
+  }
+}

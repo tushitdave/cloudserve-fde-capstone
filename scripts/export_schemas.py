@@ -7,7 +7,7 @@ from cloudserve import contracts
 
 
 NAMES = [
-    "NormalizedTicket", "EventEnvelope", "ClassificationResult", "EvidenceBundle",
+    "NormalizedTicket", "EventEnvelope", "ClassificationResult", "QueryPlan", "EvidenceBundle",
     "RoutingDecision", "DraftAnswer", "VerificationReport", "ValidationResult",
     "EscalationPacket", "FinalResult", "SourceRecord", "KnowledgeWorkItem",
     "CanonicalDocument", "KnowledgeChunk", "IndexManifest", "SourceLineage", "QuarantineRecord",

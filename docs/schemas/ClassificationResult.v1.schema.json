@@ -36,6 +36,22 @@
       "title": "Alternatives",
       "type": "array"
     },
+    "urgency_alternatives": {
+      "default": [],
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Urgency Alternatives",
+      "type": "array"
+    },
+    "nearest_training_similarity": {
+      "default": 1,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Nearest Training Similarity",
+      "type": "number"
+    },
     "model_version": {
       "default": "tfidf-logreg-v1",
       "title": "Model Version",

@@ -38,6 +38,22 @@
           "title": "Alternatives",
           "type": "array"
         },
+        "urgency_alternatives": {
+          "default": [],
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Urgency Alternatives",
+          "type": "array"
+        },
+        "nearest_training_similarity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Nearest Training Similarity",
+          "type": "number"
+        },
         "model_version": {
           "default": "tfidf-logreg-v1",
           "title": "Model Version",
@@ -87,6 +103,20 @@
         "threshold": {
           "title": "Threshold",
           "type": "number"
+        },
+        "rule_ids_fired": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Rule Ids Fired",
+          "type": "array"
+        },
+        "thresholds_applied": {
+          "additionalProperties": true,
+          "default": {},
+          "title": "Thresholds Applied",
+          "type": "object"
         }
       },
       "required": [
@@ -243,6 +273,16 @@
           "default": 0,
           "title": "End Offset",
           "type": "integer"
+        },
+        "permissions": {
+          "default": [
+            "customer_support"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "title": "Permissions",
+          "type": "array"
         }
       },
       "required": [
@@ -333,6 +373,15 @@
         "type": "string"
       },
       "title": "Guardrail Findings",
+      "type": "array"
+    },
+    "guardrail_results": {
+      "default": [],
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Guardrail Results",
       "type": "array"
     },
     "agent_steps": {

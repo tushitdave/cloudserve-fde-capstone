@@ -39,6 +39,16 @@
           "default": 0,
           "title": "End Offset",
           "type": "integer"
+        },
+        "permissions": {
+          "default": [
+            "customer_support"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "title": "Permissions",
+          "type": "array"
         }
       },
       "required": [
@@ -91,6 +101,46 @@
       "default": "",
       "title": "Reason",
       "type": "string"
+    },
+    "queries": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 2,
+      "title": "Queries",
+      "type": "array"
+    },
+    "document_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Document Id"
+    },
+    "document_confidence": {
+      "default": 0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Document Confidence",
+      "type": "number"
+    },
+    "top_score": {
+      "default": 0,
+      "title": "Top Score",
+      "type": "number"
+    },
+    "supporting_passages": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Passage"
+      },
+      "title": "Supporting Passages",
+      "type": "array"
     }
   },
   "required": [

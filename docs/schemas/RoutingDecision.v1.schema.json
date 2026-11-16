@@ -28,6 +28,20 @@
       "title": "Threshold",
       "type": "number"
     },
+    "rule_ids_fired": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Rule Ids Fired",
+      "type": "array"
+    },
+    "thresholds_applied": {
+      "additionalProperties": true,
+      "default": {},
+      "title": "Thresholds Applied",
+      "type": "object"
+    },
     "schema_version": {
       "default": "1.0",
       "title": "Schema Version",

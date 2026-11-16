@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Hand-written out-of-scope and nonsense tickets used as a hard constraint during threshold selection: none of these may receive an automatic answer. Written by the student for the capstone; not drawn from the supplied data.",
+  "tickets": [
+    {"ticket_id": "OOS-01", "channel": "chat", "body": "What is the weather in Paris tomorrow?"},
+    {"ticket_id": "OOS-02", "channel": "chat", "body": "hello"},
+    {"ticket_id": "OOS-03", "channel": "forum", "body": "Can you recommend a good pizza place near your office?"},
+    {"ticket_id": "OOS-04", "channel": "email", "subject": "Thanks", "body": "I love your product, thanks for all the work!"},
+    {"ticket_id": "OOS-05", "channel": "chat", "body": "My cat ate my keyboard, what now?"},
+    {"ticket_id": "OOS-06", "channel": "email", "subject": "Careers", "body": "Our team wants to know about your company's hiring process and open positions."},
+    {"ticket_id": "OOS-07", "channel": "chat", "body": "asdf qwer zxcv"},
+    {"ticket_id": "OOS-08", "channel": "docs_comment", "body": "Typo on this page: 'recieve' should be 'receive'."},
+    {"ticket_id": "OOS-09", "channel": "email", "subject": "Partnership", "body": "We would like to discuss a reseller partnership and marketing co-branding opportunities."},
+    {"ticket_id": "OOS-10", "channel": "forum", "body": "Does anyone know a good book about Kubernetes for beginners?"},
+    {"ticket_id": "OOS-11", "channel": "chat", "body": "Please write me a poem about clouds."},
+    {"ticket_id": "OOS-12", "channel": "email", "subject": "Invoice from another vendor", "body": "Can you help me pay my electricity bill?"}
+  ]
+}

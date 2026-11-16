@@ -36,8 +36,7 @@ def evaluate(input_path: Path, results_path: Path) -> dict:
         calibration[min(9, int(confidence * 10))].append((confidence, int(correct)))
         brier_sum += (confidence - int(correct)) ** 2
         sent = result["terminal_state"] == "sent"
-        unsafe = bool(labels.get("must_not_auto_respond") or labels.get("expected_route") == "escalate"
-                      or labels.get("answerable_from_docs") is False)
+        unsafe = bool(labels.get("must_not_auto_respond"))
         protected += int(unsafe)
         unsafe_auto += int(sent and unsafe)
         group = str(row.get("language_fluency") or "unknown")

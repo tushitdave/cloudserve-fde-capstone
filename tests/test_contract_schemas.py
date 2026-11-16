@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 from cloudserve.contracts import (AnswerClaim, CanonicalDocument, ClassificationResult, DraftAnswer,
                                   EscalationPacket, EventEnvelope, EvidenceBundle, IndexManifest,
-                                  KnowledgeChunk, KnowledgeWorkItem, NormalizedTicket, QuarantineRecord,
+                                  KnowledgeChunk, KnowledgeWorkItem, NormalizedTicket, QueryPlan, QuarantineRecord,
                                   RoutingDecision, SourceLineage, SourceRecord, ValidationResult,
                                   VerificationReport)
 from cloudserve.knowledge import resolve
@@ -14,7 +14,7 @@ from scripts.export_schemas import NAMES, export
 
 def test_ticket_handoffs_export_and_reject_invalid_values(tmp_path):
     paths = export(tmp_path)
-    assert len(paths) == len(NAMES) == 17
+    assert len(paths) == len(NAMES) == 18
     assert all(json.loads(path.read_text())["title"] == path.name.split(".v1.")[0] for path in paths)
     passage = resolve("DOC-API-002#p04")
     assert passage
@@ -26,6 +26,7 @@ def test_ticket_handoffs_export_and_reject_invalid_values(tmp_path):
         DraftAnswer(ticket_id="T-1", text="Unsupported", claims=[AnswerClaim(text="Claim", supporting_passage_ids=[])], model_version="extractive-v1")
     fixtures = [
         NormalizedTicket(ticket_id="T-1", channel="chat", body="Question"),
+        QueryPlan(ticket_id="T-1", path="approved_document", query="Question", allowed_doc_ids=[passage.doc_id], max_searches=2, source_revision=0),
         EventEnvelope(ticket_id="T-1", trace_id="trace", stage="classified", payload={}),
         ClassificationResult(intent="api_question", urgency="low", intent_confidence=0.8, urgency_confidence=0.7),
         RoutingDecision(action="escalate", reason_codes=["low_confidence"], reason="Review", threshold=0.9),
@@ -48,7 +49,7 @@ def test_source_handoffs_roundtrip_and_quarantine_contract():
     assert CanonicalDocument.model_validate_json(doc.model_dump_json()) == doc
     passage = resolve("DOC-API-002#p04")
     assert passage
-    chunk = KnowledgeChunk(**passage.model_dump(), permissions=["support"])
+    chunk = KnowledgeChunk(**{**passage.model_dump(), "permissions": ["support"]})
     assert KnowledgeChunk.model_validate_json(chunk.model_dump_json()) == chunk
     with pytest.raises(ValidationError):
         KnowledgeWorkItem(job_id="J-1", doc_id=record.doc_id, status="published_without_review", source_hash=record.source_hash)
