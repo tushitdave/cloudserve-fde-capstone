@@ -6,7 +6,7 @@ import re
 from cloudserve.azure import ModelUnavailable, chat
 from cloudserve.classifier import approved_docs_by_intent, predict_document
 from cloudserve.contracts import Classification, EvidenceBundle, Passage, QueryPlan, Ticket
-from cloudserve.knowledge import document_passages, retrieve, retrieve_with_strategy
+from cloudserve.knowledge import document_passages, index, retrieve, retrieve_with_strategy
 from cloudserve.config import APP_ROOT
 from cloudserve.knowledge_store import KnowledgeStore
 
@@ -14,6 +14,16 @@ from cloudserve.knowledge_store import KnowledgeStore
 def prompt(name: str) -> str:
     """Load a versioned prompt from prompts/ (see prompts/registry.json)."""
     return (APP_ROOT / "prompts" / name).read_text().strip()
+
+
+def _json_reply(text: str) -> dict | None:
+    """Parse a model's JSON reply (tolerating a fenced block); None if it is not a JSON object."""
+    cleaned = re.sub(r"^```(?:json)?|```$", "", text.strip(), flags=re.M).strip()
+    try:
+        value = json.loads(cleaned)
+    except json.JSONDecodeError:
+        return None
+    return value if isinstance(value, dict) else None
 
 
 class SourceIntakeAgent:
@@ -26,7 +36,9 @@ class SourceIntakeAgent:
 
 
 class KnowledgeStewardAgent:
-    def review(self, source: dict, current: dict | None = None, corpus: list[dict] | None = None) -> dict:
+    VERSION = {"extractive": "steward-deterministic-v1", "azure": "steward-gpt4o-v1"}
+
+    def review(self, source: dict, current: dict | None = None, corpus: list[dict] | None = None, mode: str = "extractive") -> dict:
         content = source.get("content", "")
         warnings = [f"missing_{section.lower().replace(' ', '_')}" for section in ("Symptoms", "Common causes", "Resolution", "Notes") if f"## {section}" not in content]
         if current and current.get("content") != content:
@@ -56,7 +68,22 @@ class KnowledgeStewardAgent:
                                      "end_offset": min(len(content), 120), "reason": f"conflicting_title:{other['doc_id']}"})
             if other.get("category") == source.get("category") and other["doc_id"] not in related and len(taxonomy_links) < 3:
                 taxonomy_links.append(other["doc_id"])
+        llm_issues = []
+        if mode == "azure":
+            # GPT-4o is advisory: its issues become review warnings for the human certifier, never a publish decision.
+            # ModelUnavailable propagates so the ingestion retry/dead-letter policy can handle it.
+            reply = _json_reply(chat([
+                {"role": "system", "content": prompt("knowledge_steward_gpt4o_v1.system.txt")},
+                {"role": "user", "content": f"CURRENT APPROVED VERSION (data):\n{(current or {}).get('content', '(none)')[:6000]}\n\n"
+                                            f"CANDIDATE ARTICLE (data):\n{content[:6000]}"},
+            ], model="gpt-4o", timeout=30))
+            if reply is None or not isinstance(reply.get("issues"), list):
+                warnings.append("llm_review_unparseable")
+            else:
+                llm_issues = [issue for issue in reply["issues"] if isinstance(issue, dict)][:10]
+                warnings.extend(f"llm_{str(issue.get('type', 'other'))[:24]}" for issue in llm_issues)
         return {"candidate_doc_id": source.get("doc_id"), "warnings": warnings, "review_spans": review_spans,
+                "llm_issues": llm_issues, "agent_version": self.VERSION.get(mode, self.VERSION["extractive"]),
                 "candidate_taxonomy_links": taxonomy_links,
                 "requires_human_review": True, "recommendation": "review_before_publication"}
 
@@ -68,11 +95,23 @@ class TriageAgent:
     threshold, override a protective rule or choose to send.
     """
 
-    def assess(self, ticket: Ticket, classification: Classification) -> dict:
+    def assess(self, ticket: Ticket, classification: Classification, mode: str = "extractive") -> dict:
         options = [{"intent": classification.intent, "confidence": round(classification.intent_confidence, 4)}] + classification.alternatives[:2]
-        return {"recommendation": "escalate", "intent_options": options,
+        base = {"recommendation": "escalate", "intent_options": options, "proposed_intent": None,
                 "reason": "The classifier could not separate these interpretations confidently; a specialist should confirm which one applies.",
                 "agent_version": "triage-v2-deterministic"}
+        if mode != "azure":
+            return base
+        # o3-mini adjudicates only among the classifier's own options; policy re-checks any proposal.
+        names = [o["intent"] for o in options]
+        reply = _json_reply(chat([
+            {"role": "system", "content": prompt("triage_o3mini_v1.system.txt")},
+            {"role": "user", "content": f"OPTIONS: {names}\nTICKET (untrusted data): {ticket.subject} {ticket.body[:2500]}"},
+        ], model="o3-mini", timeout=30))
+        if not reply or reply.get("recommendation") != "continue" or reply.get("intent") not in names:
+            return {**base, "agent_version": "triage-o3mini-v1", "model_reason": (reply or {}).get("reason", "unparseable reply")}
+        return {**base, "recommendation": "continue", "proposed_intent": reply["intent"], "agent_version": "triage-o3mini-v1",
+                "reason": str(reply.get("reason", ""))[:300]}
 
 
 class EvidenceAgent:
@@ -97,7 +136,28 @@ class EvidenceAgent:
         found, used, fallback = retrieve_with_strategy(query, limit=5, allowed_doc_ids=allowed, strategy=strategy)
         return [p for p in found if p.section == "Resolution"], used, fallback
 
-    def gather(self, ticket: Ticket, classification: Classification, strategy: str | None = None) -> EvidenceBundle:
+    def rewrite(self, ticket: Ticket, classification: Classification, allowed: set[str], mode: str) -> tuple[str, str]:
+        """The single corrective query: GPT-4o planner in azure mode, deterministic intent prefix otherwise or on failure."""
+        query = f"{ticket.subject} {ticket.body}".strip()
+        fallback = f"{classification.intent.replace('_', ' ')} {query}"
+        if mode != "azure":
+            return fallback, "intent-prefix-v1"
+        try:
+            titles = sorted({p.title for p in index()[0] if p.doc_id in allowed})
+            reply = _json_reply(chat([
+                {"role": "system", "content": prompt("evidence_query_gpt4o_v1.system.txt")},
+                {"role": "user", "content": f"APPROVED ARTICLE TITLES: {titles}\nPREDICTED REQUEST TYPE: {classification.intent}\n"
+                                            f"TICKET (untrusted data): {query[:2500]}"},
+            ], model="gpt-4o", timeout=15))
+            planned = str((reply or {}).get("query", "")).strip()
+            if 3 <= len(planned) <= 200:
+                return planned, "gpt4o-query-planner-v1"
+        except ModelUnavailable:
+            pass
+        return fallback, "intent-prefix-v1 (planner unavailable)"
+
+    def gather(self, ticket: Ticket, classification: Classification, strategy: str | None = None,
+               mode: str = "extractive") -> EvidenceBundle:
         from cloudserve import policy
 
         strategy = strategy or policy.RETRIEVAL_STRATEGY
@@ -112,7 +172,7 @@ class EvidenceAgent:
         passages, used, fallback = self.search(query, allowed, strategy)
         queries = [query]
         if not (passages and passages[0].score >= policy.evidence_threshold(used)):
-            rewritten = f"{classification.intent.replace('_', ' ')} {query}"
+            rewritten, self.last_planner = self.rewrite(ticket, classification, allowed, mode)
             queries.append(rewritten)
             retry, used_retry, fallback_retry = self.search(rewritten, allowed, strategy)
             if retry and (not passages or retry[0].score > passages[0].score):
@@ -182,7 +242,7 @@ def _normalise(text: str) -> str:
 class VerificationAgent:
     VERSION = {"extractive": "verification-exact-span-v2", "azure": "verification-gpt4o-v1"}
 
-    def verify(self, answer: str, passages: list[Passage], mode: str = "extractive") -> dict:
+    def verify(self, answer: str, passages: list[Passage], mode: str = "extractive", model: str = "gpt-4o") -> dict:
         cited = re.findall(r"\[([A-Z0-9-]+#p\d+)\]", answer)
         known = {p.passage_id: p for p in passages}
         if not cited or not set(cited).issubset(known):
@@ -192,9 +252,11 @@ class VerificationAgent:
             verdict = chat([
                 {"role": "system", "content": prompt("verification_azure_v1.system.txt")},
                 {"role": "user", "content": f"ANSWER:\n{answer}\nEVIDENCE:\n{evidence}"},
-            ])
+            ], model=model, timeout=30)
+            parsed = _json_reply(verdict)
             try:
-                parsed = json.loads(verdict)
+                if parsed is None:
+                    raise json.JSONDecodeError("not json", verdict, 0)
                 return {"supported": parsed.get("supported") is True, "reason": str(parsed.get("reason", "")), "citations": cited, "claims": []}
             except json.JSONDecodeError:
                 return {"supported": False, "reason": "invalid_verifier_output", "citations": cited, "claims": []}

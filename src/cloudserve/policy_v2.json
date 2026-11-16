@@ -276,5 +276,14 @@
       }
     }
   ],
-  "conflict_policy": "Load fails if any active approved rule has an invalid pattern, a duplicate ID or priority, an inverted date window, a failing example, or if two active rules with different actions both match one example in an overlapping date window. Shadowed rules are reported as warnings."
+  "conflict_policy": "Load fails if any active approved rule has an invalid pattern, a duplicate ID or priority, an inverted date window, a failing example, or if two active rules with different actions both match one example in an overlapping date window. Shadowed rules are reported as warnings.",
+  "agent_budgets_ms": {
+    "classify": 5000,
+    "policy_gate": 2000,
+    "triage": 20000,
+    "evidence": 20000,
+    "answer": 20000,
+    "verify_validate": 20000,
+    "note": "Wall-clock budget per LangGraph node (Research/10: bounded agent calls). A node over budget escalates the ticket with agent_timeout; generous enough for Azure calls, tight enough to stop a hung dependency."
+  }
 }

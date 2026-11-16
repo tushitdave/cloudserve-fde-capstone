@@ -133,6 +133,11 @@ class KnowledgeStore:
             db.execute("INSERT INTO knowledge_events(job_id,stage,payload_json) VALUES(?,?,?)", (job_id, "published", json.dumps({"operator": operator, "source_hash": source_hash})))
         return self.get_job(job_id)
 
+    def mark_superseded(self, job_id: str, new_job_id: str) -> None:
+        with self._connect() as db:
+            db.execute("UPDATE jobs SET status='superseded',updated_at=CURRENT_TIMESTAMP WHERE job_id=? AND status='dead_letter'", (job_id,))
+            db.execute("INSERT INTO knowledge_events(job_id,stage,payload_json) VALUES(?,?,?)", (job_id, "retried", json.dumps({"new_job_id": new_job_id})))
+
     def events(self, job_id: str) -> list[dict]:
         with self._connect() as db:
             rows = db.execute("SELECT stage,payload_json,created_at FROM knowledge_events WHERE job_id=? ORDER BY event_id", (job_id,)).fetchall()

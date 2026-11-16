@@ -11,6 +11,8 @@ from pathlib import Path
 from cloudserve.config import runtime_dir
 from cloudserve.knowledge import manifest as knowledge_manifest
 from cloudserve.ml_registry import drift_report
+from cloudserve.observability.tracing import finished_spans, write_jsonl
+from cloudserve.retrieval import warm_up
 from cloudserve.policy import NOVELTY_THRESHOLD, POLICY_VERSION, kill_switch_state, thresholds_applied
 from cloudserve.service import TicketService
 
@@ -165,6 +167,8 @@ def run(input_path: Path, output_path: Path, mode: str = "extractive") -> dict:
     rows = json.loads(input_path.read_text())
     if not isinstance(rows, list):
         raise ValueError("Input must be a JSON list")
+    retrieval_status = warm_up()  # build the dense index and load models once, before timing tickets
+    finished_spans()  # discard spans from earlier work in this process
     service = TicketService(output_path / "run.sqlite")
     results = []
     started = time.time()
@@ -177,6 +181,16 @@ def run(input_path: Path, output_path: Path, mode: str = "extractive") -> dict:
         results.append(result.model_dump())
     metrics = score(rows, results)
     metrics["decisions_logged"] = service.store.counts()["decisions_logged"]
+    spans = finished_spans()
+    write_jsonl(output_path / "traces.jsonl", spans)
+    by_stage = defaultdict(list)
+    for span in spans:
+        by_stage[span["name"].removeprefix("cloudserve.")].append(span["duration_ms"])
+    metrics["stage_latency_ms"] = {stage: {"count": len(v), "p50": round(statistics.median(v), 2),
+                                           "p95": round(sorted(v)[max(0, int(0.95 * len(v) + 0.9999) - 1)], 2)}
+                                   for stage, v in sorted(by_stage.items())}
+    metrics["retrieval_status"] = retrieval_status
+    metrics["traces"] = {"spans": len(spans), "file": "traces.jsonl", "contains_raw_text": False}
     usable = [(row, result) for row, result in zip(rows, results) if isinstance(row, dict)]
     metrics["drift"] = drift_report([f"{row.get('subject') or ''} {row.get('body') or ''}".strip() for row, _ in usable],
                                     [r["classification"]["intent"] for _, r in usable],

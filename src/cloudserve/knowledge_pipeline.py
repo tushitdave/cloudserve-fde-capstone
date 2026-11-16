@@ -2,10 +2,13 @@
 
 import hashlib
 import re
+import time
 import uuid
 
 from cloudserve.agents import KnowledgeStewardAgent, SourceIntakeAgent
+from cloudserve.config import setting
 from cloudserve.knowledge_store import KnowledgeStore, _content_hash
+from cloudserve.reliability import RETRYABLE, failure_category, with_retries
 
 DOC_ID = re.compile(r"^DOC-[A-Z]+-[0-9]{3}$")
 SECRET = re.compile(r"(?:sk|api)[-_][A-Za-z0-9]{16,}|(?:password|api[_ -]?key)\s*[:=]\s*[^\s]{8,}", re.I)
@@ -13,10 +16,25 @@ PROMPT_INJECTION = re.compile(r"ignore (all |the )?(previous|system) instruction
 
 
 class KnowledgeService:
-    def __init__(self, db_path=None):
+    def __init__(self, db_path=None, mode: str | None = None, max_attempts: int = 3, sleep=time.sleep):
         self.store = KnowledgeStore(db_path)
         self.intake = SourceIntakeAgent()
         self.steward = KnowledgeStewardAgent()
+        self.mode = mode or setting("CLOUDSERVE_MODEL_MODE", "extractive")
+        self.max_attempts = max_attempts
+        self.sleep = sleep
+
+    def retry(self, job_id: str) -> dict:
+        """Operator re-runs a dead-letter work item; the original item is kept and marked superseded."""
+        job = self.store.get_job(job_id)
+        if not job:
+            raise KeyError(job_id)
+        if job["status"] != "dead_letter":
+            raise ValueError("Only dead-letter work items can be retried")
+        raw = job["document"].get("_raw") or {k: v for k, v in job["document"].items() if not k.startswith("_")}
+        fresh = self.stage(raw)
+        self.store.mark_superseded(job_id, fresh["job_id"])
+        return fresh
 
     def stage(self, raw: dict) -> dict:
         raw = raw if isinstance(raw, dict) else {}
@@ -34,7 +52,19 @@ class KnowledgeService:
         complete = all(doc[key] for key in ("doc_id", "title", "content", "owner"))
         intake = ({"action": "use_approved_json_parser", "reason": "Known support-article JSON format", "agent_invoked": False}
                   if source_format == "json" and complete else self.intake.assess({**doc, "source_format": source_format}))
-        steward = self.steward.review(doc, current, list(active.values()))
+        retry_log = []
+        try:
+            steward, attempts = with_retries(lambda: self.steward.review(doc, current, list(active.values()), mode=self.mode),
+                                             max_attempts=self.max_attempts, sleep=self.sleep,
+                                             on_retry=lambda n, e: retry_log.append({"attempt": n, "failure_category": failure_category(e)}))
+        except RETRYABLE as error:
+            # Exhausted transient failures: park the work item in the dead-letter state for operator review.
+            steward = {"warnings": [], "quarantine_reasons": ["review_dependency_unavailable"], "attempts": self.max_attempts,
+                       "failure_category": failure_category(error), "retry_log": retry_log, "requires_human_review": True}
+            source_hash = _content_hash(doc)
+            return self.store.stage(uuid.uuid4().hex, {**doc, "_raw": raw}, source_hash, "dead_letter", intake, steward)
+        steward["attempts"] = attempts
+        steward["retry_log"] = retry_log
         reasons = []
         if intake["action"] == "quarantine":
             reasons.append("incomplete_source_format")

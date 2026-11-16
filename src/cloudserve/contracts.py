@@ -192,7 +192,7 @@ class KnowledgeWorkItem(BaseModel):
     schema_version: str = "1.0"
     job_id: str = Field(min_length=1)
     doc_id: str = Field(min_length=1)
-    status: Literal["pending_review", "approved", "published", "rejected", "quarantined", "unchanged"]
+    status: Literal["pending_review", "approved", "published", "rejected", "quarantined", "unchanged", "dead_letter", "superseded"]
     source_hash: str = Field(min_length=12)
 
 

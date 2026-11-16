@@ -30,7 +30,7 @@ def test_malformed_and_empty_inputs_have_terminal_handoff(tmp_path, raw, reason)
 
 def test_no_evidence_abstains(tmp_path, monkeypatch):
     service = TicketService(tmp_path / "tickets.sqlite")
-    monkeypatch.setattr(service.evidence, "gather", lambda *_: EvidenceBundle(ticket_id="DEV-0026", snapshot_revision=0,
+    monkeypatch.setattr(service.evidence, "gather", lambda *_, **__: EvidenceBundle(ticket_id="DEV-0026", snapshot_revision=0,
                                                                             passages=[], searches=1, sufficient=False,
                                                                             reason="insufficient_evidence"))
     result = service.process(documented_ticket())

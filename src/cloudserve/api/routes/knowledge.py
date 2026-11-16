@@ -72,6 +72,16 @@ def reject(job_id: str, payload: ReviewIn, _principal=Depends(require("knowledge
         raise HTTPException(status_code=409, detail=str(error)) from error
 
 
+@router.post("/jobs/{job_id}/retry")
+def retry(job_id: str, _principal=Depends(require("knowledge_owner", "operator"))):
+    try:
+        return service.retry(job_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="Knowledge job not found") from error
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+
 @router.post("/jobs/{job_id}/publish")
 def publish(job_id: str, payload: PublishIn, _principal=Depends(require("knowledge_owner"))):
     try:

@@ -10,6 +10,7 @@ from cloudserve.agents import AnswerAgent, EvidenceAgent, TriageAgent, Verificat
 from cloudserve.classifier import classify
 from cloudserve.config import runtime_dir, setting
 from cloudserve.contracts import Classification, EscalationPacket, Ticket, TicketResult, utc_now
+from cloudserve.observability.tracing import AgentTimeout
 from cloudserve.orchestration.ticket_graph import TicketRun, run_ticket_graph
 from cloudserve import guardrails, policy
 from cloudserve.storage import Store
@@ -56,7 +57,8 @@ class TicketService:
         chosen_mode = mode or setting("CLOUDSERVE_MODEL_MODE", "extractive")
         if chosen_mode not in {"extractive", "azure"}:
             chosen_mode = "extractive"
-        run = TicketRun(ticket=ticket, raw=raw, invalid_channel=invalid_channel, mode=chosen_mode, service=self, events=events)
+        run = TicketRun(ticket=ticket, raw=raw, invalid_channel=invalid_channel, mode=chosen_mode, service=self, events=events,
+                        trace_id=trace_id)
         try:
             run_ticket_graph(run)
             run.events.append(("routed", run.decision.model_dump()))
@@ -65,8 +67,12 @@ class TicketService:
             # failures. Persistence remains outside this block: a storage
             # failure must be visible rather than pretending a handoff exists.
             run.classification = run.classification or Classification(intent="unknown", urgency="medium", intent_confidence=0, urgency_confidence=0)
-            run.decision = policy.escalate("processing_failure", "A processing dependency was unavailable.")
-            run.events.append(("failure", {"type": type(error).__name__}))
+            if isinstance(error, AgentTimeout):
+                run.decision = policy.escalate("processing_failure", f"The {error.stage} step exceeded its time budget; a person will handle this ticket.")
+                run.events.append(("failure", {"type": "AgentTimeout", "stage": error.stage, "budget_ms": error.budget_ms}))
+            else:
+                run.decision = policy.escalate("processing_failure", "A processing dependency was unavailable.")
+                run.events.append(("failure", {"type": type(error).__name__}))
         classification, decision, findings, passages = run.classification, run.decision, run.findings, run.passages
         answer, reason_override, citations, steps = run.answer, run.reason_override, run.citations, run.steps
         guardrail_results, evidence_score = run.guardrail_results, run.evidence_score
@@ -103,7 +109,7 @@ class TicketService:
             guardrail_results=guardrail_results, agent_steps=steps,
             latency_ms=round((time.perf_counter() - started) * 1000),
         )
-        events.append(("decision", _decision_record(result, ticket, payload_hash, passages, evidence_score, chosen_mode, self)))
+        events.append(("decision", _decision_record(result, ticket, payload_hash, passages, evidence_score, chosen_mode, self, run.stage_timings_ms)))
         events.append(("terminal", {"state": result.terminal_state, "reason_codes": decision.reason_codes, "guardrail_findings": findings}))
         self.store.save(payload_hash, result, events, tenant_id=ticket.customer_id)
         return result
@@ -135,7 +141,7 @@ def _next_step(codes: list[str]) -> str:
 
 
 def _decision_record(result: TicketResult, ticket: Ticket, input_hash: str, passages: list, evidence_score: float,
-                     mode: str, service: "TicketService") -> dict:
+                     mode: str, service: "TicketService", stage_timings: dict | None = None) -> dict:
     """Governance Framework minimum decision record, written for every ticket."""
     code = result.decision.reason_codes[0] if result.decision.reason_codes else ""
     if result.terminal_state == "sent":
@@ -167,4 +173,5 @@ def _decision_record(result: TicketResult, ticket: Ticket, input_hash: str, pass
         "prompt_version": service.answer.PROMPT_VERSION.get(mode) if result.terminal_state == "sent" or result.guardrail_results else None,
         "verifier_version": service.verification.VERSION.get(mode) if result.guardrail_results else None,
         "requirement_ids": requirement_ids,
+        "stage_timings_ms": stage_timings or {},
     }
