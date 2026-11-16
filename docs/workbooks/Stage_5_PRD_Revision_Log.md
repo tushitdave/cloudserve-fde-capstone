@@ -11,7 +11,7 @@ The full narrative with evidence is in `docs/PRD_revision_log.md` (revision R1).
 | Who carried out the revision | Tushit Dave |
 | Who reviewed and agreed it | Student as product owner; evidence reviewed against the held-out calibration split and test suite |
 | Number of requirements changed | 4 (FR-03, FR-04, FR-06, FR-07) |
-| Number of requirements added | 2 (FR-13 novelty escalation, NFR-08 kill switch) |
+| Number of requirements added | 4 (FR-13 novelty, NFR-08 kill switch; v3: NFR-09 security, NFR-10 ML lifecycle) |
 | Number of requirements removed | 1 (implicit "predict answerability" gate) |
 
 ## 2. Section two: the changes
@@ -24,9 +24,11 @@ The full narrative with evidence is in `docs/PRD_revision_log.md` (revision R1).
 | FR-07 | Draft from evidence; verify citations | Full procedure + causes + notes, each line cited and verified as an exact span; five guardrails recorded on every answer; instruction-override tickets blocked | v1 quoted 540 characters (cut steps); verification was trivially true; A7 could only be shown by patching code | Product owner |
 | FR-13 (new) | — | Escalate requests whose nearest training-ticket similarity is <0.35 | Calibrated confidence was 0.99 on "My cat ate my keyboard" | Product owner |
 | NFR-08 (new) | — | Kill switch: UI, API or environment variable; effective on the next ticket; in-flight tickets held | Governance Framework section 5; none existed | Product owner |
+| FR-05 (v3) | Lexical retrieval only | Hybrid lexical + Chroma all-MiniLM-L6-v2, chosen over dense-only and cross-encoder reranking on the calibration split; lexical fallback logged | Architecture review; 7.1-point fluency gap under lexical | Product owner |
+| NFR-09/10 (v3, new) | — | Security layer (keys, roles, tenants, quotas, encryption, retention); ML registry with drift monitors and retraining criteria; rule conflict detection; LangGraph orchestration | Gaps against `Research/02_architecture_and_agents.md` | Product owner |
 | Thresholds | Hand-set 0.24 / 0.11 / 0.68 | Selected by `evaluation/threshold_selection.py` on the calibration split: maximum coverage subject to 0 protected false-auto, 0 out-of-scope auto and ≤5% wrong article | Brief: "a threshold chosen because it looked reasonable" is the failure mode | Product owner |
 
-**Effect.** Development auto-answers rose from 9.2% to 72.8% and validation from 3.8% to 68.8%. Escalation fell from 90.8% to 27.2% (development). Safe-auto recall went from 14.8% to 86.5%. Protected false-auto stayed at 0.
+**Effect.** v2: development auto-answers rose from 9.2% to 72.8%, escalation fell from 90.8% to 27.2%, and safe-auto recall went from 14.8% to 86.5%. v3: 80.4% auto (validation 76.3%), escalation 19.6%, safe-auto recall 96.8%, and a fluency gap of 2.4 points. Protected false-auto stayed at 0 throughout.
 
 ## 3. Section three: assumptions that turned out to be wrong
 
@@ -44,7 +46,7 @@ The full narrative with evidence is in `docs/PRD_revision_log.md` (revision R1).
 |---|---|---|---|
 | Urgency is 50% accurate | Labels conflict; urgency never releases an answer | New labels or features | When live priority data exists |
 | 90 dev answers to label-`escalate` tickets | No text signal separates them; hiding them would cut coverage on identical text | Escalating every look-alike ticket, which would also escalate their identical labelled-auto twins | After human review of the 90 |
-| Fluency gap 7.1 points | Mitigation (dense retrieval) needs live Azure access and measurement | Network setup plus a new evaluation | Next iteration |
+| Fluency gap 7.1 points | Closed in v3 by hybrid retrieval (2.4 points) | — | Done |
 | Evidence threshold at the retrieval floor (0.06) | Selection showed no safety gain from higher values on calibration data | Lower coverage | When a passage-level gold set exists |
 
 ## 5. Section five: the reflection

@@ -78,7 +78,8 @@ def convert(md: str) -> str:
             out.append("<blockquote>" + inline(" ".join(block)) + "</blockquote>"); continue
         if not line.strip():
             i += 1; continue
-        para = []
+        para = [lines[i].strip()]  # always consume at least one line (e.g. a lone "|" row)
+        i += 1
         while i < len(lines) and lines[i].strip() and not re.match(r"^(#{1,4}\s|\||>|```|\s*[-*]\s|\s*\d+\.\s)", lines[i]):
             para.append(lines[i].strip()); i += 1
         text = " ".join(para)

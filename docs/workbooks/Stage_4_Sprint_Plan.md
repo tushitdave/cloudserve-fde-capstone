@@ -19,8 +19,8 @@
 |---|---|---:|---|---|---|---|
 | B-01 | Environment and dependency setup | 2 | Must | — | Pinned `requirements.txt`; fresh install passes in CI | Done (CI run 43889620478) |
 | B-02 | Data loading and normalisation | 2 | Must | B-01 | Four channels normalised; malformed and empty rows escalate | Done |
-| B-03 | Document chunking (and embedding) | 3 | Must | B-02 | Section-aware passages with exact offsets; procedures never split | Done for lexical; dense index not built live |
-| B-04 | Retrieval | 3 | Must | B-03 | Ranked real passage IDs; threshold returns nothing when weak | Done (lexical; dense/hybrid code not measured) |
+| B-03 | Document chunking and embedding | 3 | Must | B-02 | Section-aware passages with exact offsets; procedures never split | Done: Chroma + all-MiniLM-L6-v2 index |
+| B-04 | Vector store and retrieval | 3 | Must | B-03 | Ranked real passage IDs; threshold returns nothing when weak | Done: lexical/dense/hybrid/rerank compared; hybrid selected |
 | B-05 | Evaluation harness | 3 | Must | B-02 | One command, arbitrary input/output, metrics + manifest | Done |
 | B-06 | Intent and urgency classifier | 3 | Must | B-02 | Per-class P/R; calibrated on held-out split | Done (v2) |
 | B-07 | Routing logic and thresholds | 4 | Must | B-06 | Versioned rules; thresholds from risk–coverage on calibration split | Done (v2) |
@@ -34,6 +34,7 @@
 | B-15 | Report, video and submission package | 10 | Must | all | Four-part archive | In progress |
 | B-16 | Governed knowledge pipeline and UI | 4 | Should | B-03 | Stage, review, certify, publish; React views | Done (local, unauthenticated) |
 | B-17 | Kill switch | 1 | Must | B-07 | Next-ticket effect, tested | Done |
+| B-18 | LangGraph orchestration, security layer, ML registry, rule conflict detection | 6 | Should | B-07, B-10 | Architecture components built and tested | Done (policy v3) |
 
 ## 3. Section three: build plan in detail (compressed "week two")
 
@@ -56,8 +57,8 @@
 | Item | Cut order | Consequence of cutting it | What you will say about it in the report |
 |---|---|---|---|
 | Prometheus/Grafana monitoring | 1st to go | No live dashboards; metrics only per run | Per-run `metrics.json` and the decision log cover auditability; live monitoring is a pilot requirement |
-| Dense (ada-002) retrieval comparison | 2nd to go | The fluency gap mitigation is unmeasured | Named as the first next step; the code path exists but is unmeasured |
-| API authentication and tenant isolation | 3rd to go | API must stay local | Stated as a deployment blocker in governance |
+| Dense retrieval comparison | (not cut) | — | Built in v3 with Chroma + MiniLM; closed the fluency gap |
+| API authentication and tenant isolation | (not cut) | — | Built in v3; demo keys must be replaced before real use |
 | o3-mini triage experiment | 4th | Triage remains deterministic | No measured gain to justify it |
 | Two-person answer review | 5th | Hallucination rate unmeasured | Stated plainly as unmeasured; extractive design limits the risk |
 

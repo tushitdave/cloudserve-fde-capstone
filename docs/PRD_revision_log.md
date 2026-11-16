@@ -41,7 +41,44 @@ Stage 5 record of substantive requirement changes after contact with the build a
 
 **What it taught.** A label in the supplied data is not automatically a learnable target. The requirement should have been written as "escalate what we cannot ground" from the start, rather than "predict answerability".
 
+## Revision R2 — 16 November 2026 (evening): close the architecture gaps
+
+**What prompted it.** A review against the research architecture (`Research/02_architecture_and_agents.md`) listed six components that were designed but not built:
+
+- Chroma with all-MiniLM-L6-v2 dense retrieval and a dense/lexical/hybrid comparison
+- LangGraph orchestration
+- a cross-encoder reranker experiment
+- the security layer (identity, roles, tenant isolation, encryption, retention, quotas)
+- an ML registry with drift monitors and retraining criteria
+- rule-table conflict detection
+
+Without dense retrieval, the 7.1-point fluency gap from R1 also had no tested mitigation.
+
+**What changed.**
+
+| Requirement | v2 | v3 |
+|---|---|---|
+| FR-05 retrieval | Lexical TF-IDF only; ada-002 code never ran | Chroma persistent index with all-MiniLM-L6-v2 (ONNX), keyed by approved-snapshot hash. Lexical, dense, hybrid and hybrid + cross-encoder compared on the calibration split. **Hybrid selected** by the threshold procedure (coverage 84.5%, safe-auto recall 95.8%, fluency gap 3.6 points on calibration). Reranker measured, not selected (no gain, 2× latency). Lexical fallback with a logged reason when the index or model is unavailable. |
+| FR-05 permissions | Permissions stored on passages | Role filter applied inside the Chroma query and lexical candidate set before any passage leaves retrieval |
+| FR-02 orchestration | One procedural function | LangGraph `StateGraph` with nodes classify → policy_gate → triage / evidence → answer → verify_validate; replay of 580 tickets showed 0 differences |
+| FR-04 rules | Unique-priority check | Validation and conflict detection: schema, IDs, priorities, effective windows, approval status, example-based regression, cross-action conflicts, shadowing. The policy refuses to load on error. |
+| New NFR-09 security | Unauthenticated local API | API keys with five roles; object-level tenant isolation (404 outside tenant); per-key quota (429); Fernet encryption of stored results and events; customer erasure and retention purge that keep decision records |
+| New NFR-10 ML lifecycle | Calibration record only | `model_registry.json` (dataset/split hashes, features, hyperparameters, artifact fingerprint, calibration, promotion). Drift monitors in every run (intent PSI, length, OOV, novelty, confidence). Documented retraining criteria and a `promotion_check`. |
+
+**Result.**
+
+| | v2 dev | v3 dev | v2 validation | v3 validation |
+|---|---:|---:|---:|---:|
+| Automatic answers | 72.8% | **80.4%** | 68.8% | **76.3%** |
+| Escalation | 27.2% | **19.6%** | 31.3% | **23.8%** |
+| Safe-auto recall | 86.5% | **96.8%** | 81.3% | **93.8%** |
+| Wrong-article answers (share of sent) | 1.9% | **0.5%** | 1.8% | **0.0%** |
+| Fluency gap (safe-auto recall) | 7.1 pts | **2.4 pts** | — | — |
+| Protected false-auto | 0 | 0 | 0 | 0 |
+
+**What it cost.** p95 local latency rose from 8 ms to about 206 ms, still well inside the 3-second target. The first run downloads about 160 MB of ONNX models. Without network the system falls back to lexical, sending 359 of 500 development tickets with protected false-auto still 0. Label-disagreement answers rose from 90 to 100 on development, again for human review.
+
 ## Open revisions
 
-- Non-fluent customers have 81% safe-auto recall against 88% for fluent customers on development (a 7-point gap). That breaches the under-5-point fairness condition. The candidate mitigation is dense embedding retrieval (P4-01/P4-05), which needs network access to Azure.
+- (Closed by R2.) The non-fluent gap fell from 7.1 to 2.4 points with hybrid retrieval. The regional gap (Latin America, n=39) remains above 5 points.
 - Urgency prediction is 50% accurate on held-out data. The labels show the same text with different urgencies, so urgency is reported for prioritisation only and is never used to release an answer.

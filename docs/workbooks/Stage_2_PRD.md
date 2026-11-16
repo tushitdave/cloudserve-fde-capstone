@@ -51,6 +51,8 @@ CloudServe's support team is not short of answers; it is short of time to find t
 | NFR-05 | Auditability | Every decision reconstructable: inputs, model, sources, thresholds, reason | Decision record fields; reconciliation |
 | NFR-06 | Fairness | <5 points quality difference across tier, region and fluency | Segment report each run |
 | NFR-07 | Cost | Runs at zero cost; the provider is optional | Default extractive mode with no API calls |
+| NFR-09 (v3) | Security | API keys, roles, tenant isolation, quotas, encryption at rest, retention | `tests/test_security.py` |
+| NFR-10 (v3) | ML lifecycle | Model registry, drift monitors, retraining criteria, promotion check | `data/manifests/model_registry.json`, drift block per run |
 
 ## 6. What is deliberately out of scope
 

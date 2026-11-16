@@ -1,66 +1,88 @@
-# CloudServe support prototype
+# CloudServe support intelligence
 
-CloudServe is a six-role support workflow prototype for the FDE capstone. It classifies fictional support tickets, searches 29 approved articles, releases an answer only after evidence and policy checks, and otherwise records a human handoff. The React workspace lets a reviewer submit tickets, inspect scores and exact citations, browse handoffs and view local metrics.
+CloudServe is a governed support-automation system for the FDE capstone. It classifies support tickets from four channels and retrieves evidence from 29 approved articles with hybrid lexical + dense (Chroma, all-MiniLM-L6-v2) search. It releases a cited answer only after deterministic policy, verification and guardrail checks; anything else becomes a human handoff with context. Orchestration is a LangGraph state graph, the API is FastAPI with role-based access, and a React workspace serves reviewers, knowledge owners and operators.
 
-The [architecture](docs/architecture.md) is the design target. The [build ledger](docs/BUILD_PLAN.md) records implemented behavior and remaining acceptance work. Current role implementations are bounded: source intake and knowledge stewardship inspect the supplied snapshot, triage recommends human review, evidence searches at most twice, answer drafts from an approved passage or GPT-4o, and verification checks citation support. Code owns the final release decision.
+The [architecture](docs/architecture.md) is the design target. The [build ledger](docs/BUILD_PLAN.md) records what is proven. The [evaluation snapshot](docs/evaluation_snapshot.md) and [governance pack](docs/governance.md) hold the measured results and controls.
 
 ## Run locally
 
-Prerequisites: Python 3.12 or newer, Node.js 22 or newer with npm, and Git. No API key is needed; the default mode makes no model calls. If `python3 --version` is older than 3.12, use `python3.12` in the first command below. From the repository root:
+Prerequisites: **Python 3.12** (3.13 also works), Node.js 22 or newer with npm, Git, and internet access on the first run. On first use, about 160 MB of ONNX models are downloaded: all-MiniLM-L6-v2 for dense retrieval and ms-marco-MiniLM-L-6-v2 for the reranker experiment. Without network the system still runs, falls back to lexical retrieval, and logs why. No model-provider key is needed; the default mode makes no generative-model calls. From the repository root:
 
 ```bash
-python3 -m venv .venv
+python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 npm --prefix frontend ci
 CLOUDSERVE_PYTHON=.venv/bin/python ./scripts/dev.sh
 ```
 
-Open `http://localhost:5173`. Vite proxies `/api` to FastAPI on port 8001. If port 8001 is already occupied, stop the earlier Uvicorn process before starting the combined development command. A Docker Compose build is defined in `deploy/compose.yaml` for a machine with Docker Compose and network access. The API serves OpenAPI at `http://localhost:8001/docs`.
-Set `CLOUDSERVE_API_PORT=8012` on the command when port 8001 is occupied; the backend and Vite proxy will use the same alternate port.
+Open `http://localhost:5173`. Vite proxies `/api` to FastAPI on port 8001; OpenAPI is at `http://localhost:8001/docs`. If port 8001 is busy, set `CLOUDSERVE_API_PORT=8012` on the same command. Use the **Acting as** selector in the top bar to switch between the local demo roles.
 
-One-command checks and the unattended batch run, from the same directory. The batch command takes any input file and a new output directory, and writes `results.json`, `metrics.json` and `run_manifest.json` there:
+## One-command tests and the unattended run
 
 ```bash
 CLOUDSERVE_PYTHON=.venv/bin/python ./scripts/test.sh
-CLOUDSERVE_PYTHON=.venv/bin/python ./scripts/batch.sh data/supplied/development_tickets.json evaluation/reports/local-run
+CLOUDSERVE_PYTHON=.venv/bin/python ./scripts/batch.sh <input.json> <new-output-dir>
 ```
 
-`scripts/batch.sh` accepts any compatible JSON-list input path and a fresh output directory. A rerun into the same output directory reuses persisted ticket IDs; use a new output directory for a different file.
+`test.sh` runs the architecture/credential check, the Python suite and the React production build. `batch.sh` processes any compatible JSON list unattended, for example `data/supplied/validation_tickets.json`. It writes `results.json`, `metrics.json` (business, technical, governance, fairness, calibration and drift blocks), `run_manifest.json` (exact input, terminal and decision ID lists) and an encrypted `run.sqlite` decision log. Use a new output directory for each run.
 
-The default `CLOUDSERVE_MODEL_MODE=extractive` runs locally without Azure calls. `CLOUDSERVE_MODEL_MODE=azure` uses GPT-4o for answer and verification, with escalation on provider failure. Copy `.env.example` to `.env` only if using Azure. The embedding deployment is opt-in:
+## API access and roles
 
-```bash
-PYTHONPATH=src python scripts/build_dense_index.py
-```
+Every endpoint except `/health` needs an `X-API-Key` header. Without `CLOUDSERVE_API_KEYS`, five **local demo keys** are enabled:
 
-This writes a version-checked, 1536-dimensional index under ignored `data/runtime/`. Search then reranks lexical candidates with Azure dense similarity. It falls back to lexical ranking on embedding query failure. The supplied reference answers are never indexed as answer authority.
+| Key | Role | Can |
+|---|---|---|
+| `demo-customer-key` | customer (tenant `CUST-DEMO`) | raise tickets and read its own tickets only |
+| `demo-agent-key` | support_agent | read all tickets and decisions, resolve handoffs, read knowledge and policy |
+| `demo-knowledge-key` | knowledge_owner | stage, approve and publish article revisions |
+| `demo-operator-key` | operator | operate the kill switch, read metrics |
+| `demo-admin-key` | admin | everything, plus customer data erasure and retention purge |
 
-## Policy, thresholds and kill switch
+For any non-local use, set `CLOUDSERVE_API_KEYS` to a JSON list of `{key, key_id, role, tenant}` and `CLOUDSERVE_DEMO_KEYS=0`. Other controls:
 
-Routing rules live in `src/cloudserve/policy_v2.json`: versioned, each with evidence and requirement IDs. Thresholds are selected on the held-out calibration split by `PYTHONPATH=src:. python -m evaluation.threshold_selection`, which writes `data/manifests/threshold_selection_v1.json`. To stop all automatic answers immediately, use the Overview page, `POST /v1/policy/kill-switch` with `{"active": true, "operator": "...", "reason": "..."}`, or start with `CLOUDSERVE_AUTO_SEND_DISABLED=1`. See [PRD revision R1](docs/PRD_revision_log.md) and the [evaluation snapshot](docs/evaluation_snapshot.md).
+- Requests are rate-limited per key (`CLOUDSERVE_RATE_LIMIT_PER_MIN`, default 600).
+- Stored results and events are encrypted with `CLOUDSERVE_DATA_KEY` (a Fernet key), or with a generated `data/runtime/data.key` for local use.
+- `DELETE /v1/customers/{id}/data` and `POST /v1/admin/retention/purge {"days": 90}` erase raw customer text and keep decision records.
 
-## Test and evaluate
+## Retrieval, policy and kill switch
 
-```bash
-PYTHONPATH=src:. pytest -q
-PYTHONPATH=src python -m evaluation.harness --input data/supplied/development_tickets.json --output evaluation/reports/dev
-PYTHONPATH=src python -m evaluation.harness --input data/supplied/validation_tickets.json --output evaluation/reports/validation
-```
+- Retrieval strategies are compared by `PYTHONPATH=src:. python -m evaluation.retrieval_comparison` (lexical, dense, hybrid, hybrid + cross-encoder). The strategy and every threshold are then chosen on the held-out calibration split by `PYTHONPATH=src:. python -m evaluation.threshold_selection` (≈5 min), which writes `data/manifests/threshold_selection_v1.json`. Hybrid was selected; set `CLOUDSERVE_RETRIEVAL_STRATEGY=lexical` to force the fallback.
+- Routing rules live in `src/cloudserve/policy_v2.json` (policy v3). Each rule has a priority, effective dates, an approval status, interview evidence and examples. `cloudserve.policy_rules` refuses to load a table with conflicts or failing examples.
+- Kill switch: Overview page, `POST /v1/policy/kill-switch` (operator role), or `CLOUDSERVE_AUTO_SEND_DISABLED=1`. It takes effect on the next ticket.
+- ML registry and drift: `PYTHONPATH=src python -m cloudserve.ml_registry` writes `data/manifests/model_registry.json`. Every batch run reports drift against it.
 
-Each batch writes `results.json`, `metrics.json`, `run_manifest.json` and `run.sqlite`. Metrics distinguish offline proxies from observed customer outcomes. The 500-ticket development data trained the classifier; the visible 80-ticket set informed policy tuning. Neither is untouched final gold. A human-reviewed claim and passage gold set is still needed before claiming trust targets.
-
-The [gold seed package](evaluation/README.md) now freezes all 580 supplied route/document labels and prepares a 120-ticket, two-reviewer passage/claim queue. Its scorer validates source hashes and reports current route/document performance; semantic claim-support metrics stay unavailable until human adjudication.
-
-The [offline evaluation snapshot](docs/evaluation_snapshot.md) gives denominators for the 500/80 runs, ECE, protected false-auto counts, citation resolvability and language-fluency cuts. It explicitly leaves hallucination, semantic citation accuracy and live availability unknown.
+`CLOUDSERVE_MODEL_MODE=azure` optionally uses Azure GPT-4o for drafting and verification behind the same verifier and guardrails. Copy `.env.example` to `.env` only for that mode.
 
 ## API
 
-`POST /v1/tickets`, `GET /v1/tickets`, `GET /v1/tickets/{id}`, `GET /v1/tickets/{id}/decision`, `GET /v1/escalations`, `POST /v1/escalations/{id}/resolve`, `POST /v1/feedback`, `GET /v1/knowledge/documents`, `GET /v1/knowledge/indexes/active`, `GET /v1/knowledge/passages/{id}`, `GET /v1/metrics`, `GET /v1/policy/active` and `GET|POST /v1/policy/kill-switch`. Ticket IDs are idempotent for the same input; a different input with an existing ID returns 409. Accepted tickets have one persisted terminal state and decision log. A human reviewer can record an outcome for an escalated ticket; this adds an audit event and removes it from the open queue without changing the original terminal result or sending a customer message. Duplicate identical resolutions return the existing record; a conflicting second resolution returns 409.
+Tickets:
 
-The [knowledge pipeline](docs/knowledge_pipeline.md) adds `POST/GET /v1/knowledge/jobs`, `POST /v1/knowledge/jobs/{id}/approve|reject|publish`, `GET /v1/knowledge/documents/{id}`, `GET /v1/knowledge/documents/{id}/versions`, and `GET /v1/knowledge/documents/{id}/lineage?source_version=...`. The Knowledge page shows the 29 supplied articles, active and historical passages, citation links, staged updates, quarantine reasons and review actions. Restart a backend started without `--reload` to see these routes.
+- `POST /v1/tickets`, `GET /v1/tickets`, `GET /v1/tickets/{id}`, `GET /v1/tickets/{id}/decision`
+- `GET /v1/escalations`, `POST /v1/escalations/{id}/resolve`
+- `POST /v1/feedback`, `GET /v1/metrics`
 
-This is a local demonstration API. The knowledge approval fields currently accept user-entered names; identity, tenant authorization, production monitoring and a clean deployment rehearsal remain open gates. Do not expose it publicly.
+Knowledge:
+
+- `POST/GET /v1/knowledge/jobs`, `POST /v1/knowledge/jobs/{id}/approve|reject|publish`
+- `GET /v1/knowledge/documents[/{id}[/versions|/lineage]]`, `GET /v1/knowledge/passages/{id}`, `GET /v1/knowledge/indexes/active`
+
+Policy and administration:
+
+- `GET /v1/policy/active`, `GET|POST /v1/policy/kill-switch`
+- `DELETE /v1/customers/{id}/data`, `POST /v1/admin/retention/purge`
+
+Ticket IDs are idempotent: the same input returns the stored result, and different input with an existing ID returns 409. Every accepted ticket has exactly one terminal state (`sent` or `escalated`) and a decision record.
 
 ## Repository
 
-`src/cloudserve/` holds the FastAPI application, ML classifier, agents, policy, retrieval and SQLite persistence. `frontend/` holds the React workspace; `data/supplied/` contains the fictional capstone data; `evaluation/` contains the batch harness; `tests/` contains workflow regression tests; `docs/` and `prompts/` contain project design notes. Secrets, runtime databases and evaluation reports are Git ignored.
+| Path | Contents |
+|---|---|
+| `src/cloudserve/` | Application code: `orchestration/ticket_graph.py` (LangGraph), `classifier.py`, `policy.py` + `policy_rules.py` + `policy_v2.json`, `retrieval.py` (Chroma/MiniLM/reranker), `knowledge*.py`, `agents.py`, `guardrails.py`, `security.py`, `encryption.py`, `storage.py`, `ml_registry.py`, `api/routes/` |
+| `prompts/` | Versioned prompt library and registry |
+| `tests/` | Test suite (one command: `scripts/test.sh`) |
+| `evaluation/` | Harness, quality report, retrieval comparison, threshold selection, gold seed and fixtures |
+| `data/` | Supplied data and manifests (split, source, calibration, thresholds, retrieval comparison, model registry) |
+| `docs/` | Architecture, PRD and revision log, governance, evaluation snapshot, workbooks, report |
+| `frontend/` | React workspace |
+
+Secrets, runtime databases, model caches and indexes, and evaluation reports are git-ignored.
