@@ -113,6 +113,49 @@ def document_passages(doc_id: str) -> list[Passage]:
     return [p for p in index()[0] if p.doc_id == doc_id]
 
 
+def retrieve_with_strategy(query: str, limit: int = 5, allowed_doc_ids: set[str] | None = None,
+                           strategy: str = "lexical", role: str = "customer_support") -> tuple[list[Passage], str, str | None]:
+    """Rank approved, permission-filtered passages with one of the compared strategies.
+
+    Returns (passages, strategy_actually_used, fallback_reason). Scores are ranking
+    scores in [0, 1] whose scale depends on the strategy; the policy holds one
+    evidence threshold per strategy.
+    """
+    from cloudserve import retrieval
+
+    passages, vectorizer, matrix = index()
+    if not query.strip():
+        return [], strategy, None
+    lexical = cosine_similarity(vectorizer.transform([query]), matrix)[0]
+    eligible = [i for i, p in enumerate(passages)
+                if (allowed_doc_ids is None or p.doc_id in allowed_doc_ids) and role in p.permissions]
+    if strategy != "lexical":
+        try:
+            dense = retrieval.dense_scores(query, allowed_doc_ids, role=role, k=max(20, limit * 4))
+            by_id = {p.passage_id: i for i, p in enumerate(passages)}
+            dense_rank = [by_id[pid] for pid in sorted(dense, key=dense.get, reverse=True) if pid in by_id and by_id[pid] in eligible]
+            if strategy == "dense":
+                top = dense_rank[:limit]
+                return [passages[i].model_copy(update={"score": round(dense[passages[i].passage_id], 4)}) for i in top], strategy, None
+            lexical_rank = sorted(eligible, key=lambda i: lexical[i], reverse=True)[:8]
+            candidates = list(dict.fromkeys(lexical_rank + dense_rank[:8]))
+            fused = {i: 0.5 * float(lexical[i]) + 0.5 * dense.get(passages[i].passage_id, 0.0) for i in candidates}
+            ranked = sorted(candidates, key=lambda i: fused[i], reverse=True)
+            if strategy == "hybrid":
+                return [passages[i].model_copy(update={"score": round(fused[i], 4)}) for i in ranked[:limit]], strategy, None
+            pool = ranked[:8]
+            scores = retrieval.rerank_scores(query, [passages[i] for i in pool])
+            order = sorted(range(len(pool)), key=lambda j: scores[j], reverse=True)[:limit]
+            return [passages[pool[j]].model_copy(update={"score": round(scores[j], 4)}) for j in order], strategy, None
+        except retrieval.RetrievalUnavailable as error:
+            fallback = str(error)
+    else:
+        fallback = None
+    top = sorted(eligible, key=lambda i: lexical[i], reverse=True)[:limit]
+    return ([passages[i].model_copy(update={"score": round(float(lexical[i]), 4)}) for i in top if lexical[i] >= 0.06],
+            "lexical", fallback)
+
+
 def search_candidates(query: str, strategy: str = "lexical", limit: int = 5,
                       allowed_doc_ids: set[str] | None = None) -> list[Passage]:
     """Compare lexical, dense and hybrid candidates over one active approved snapshot.

@@ -11,21 +11,25 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
+from cloudserve import policy_rules
 from cloudserve.config import runtime_dir
 from cloudserve.contracts import Classification, Decision, Ticket, utc_now
 
 POLICY_PATH = Path(__file__).with_name("policy_v2.json")
 
 
+class PolicyValidationError(ValueError):
+    pass
+
+
 @lru_cache(maxsize=1)
 def load_policy() -> dict:
+    """Load the rule table and refuse to run if validation finds errors or conflicts."""
     policy = json.loads(POLICY_PATH.read_text())
-    priorities = [rule["priority"] for rule in policy["rules"]]
-    if len(priorities) != len(set(priorities)):
-        raise ValueError("Policy rules must have unique priorities (conflict detection)")
-    for rule in policy["rules"]:
-        if "pattern" in rule:
-            re.compile(rule["pattern"])
+    report = policy_rules.validate(policy)
+    if report["errors"]:
+        raise PolicyValidationError("; ".join(report["errors"]))
+    policy["validation"] = report
     return policy
 
 
@@ -34,7 +38,16 @@ POLICY_VERSION = POLICY["policy_version"]
 THRESHOLDS = POLICY["thresholds"]
 AUTO_THRESHOLD = float(THRESHOLDS["intent_confidence"])
 DOCUMENT_THRESHOLD = float(THRESHOLDS["document_confidence"])
-EVIDENCE_THRESHOLD = float(THRESHOLDS["evidence_score"])
+RETRIEVAL_STRATEGY = os.environ.get("CLOUDSERVE_RETRIEVAL_STRATEGY") or THRESHOLDS.get("retrieval_strategy", "lexical")
+EVIDENCE_BY_STRATEGY = {k: float(v) for k, v in THRESHOLDS.get("evidence_score_by_strategy", {"lexical": THRESHOLDS["evidence_score"]}).items()}
+
+
+def evidence_threshold(strategy: str | None = None) -> float:
+    """Evidence threshold for the strategy that actually ran (a lexical fallback uses the lexical threshold)."""
+    return EVIDENCE_BY_STRATEGY.get(strategy or RETRIEVAL_STRATEGY, EVIDENCE_BY_STRATEGY["lexical"])
+
+
+EVIDENCE_THRESHOLD = evidence_threshold()
 NOVELTY_THRESHOLD = float(THRESHOLDS["min_training_similarity"])
 PROTECTED = set(next(rule["intents"] for rule in POLICY["rules"] if rule["name"] == "protected_intent"))
 
@@ -69,20 +82,13 @@ def set_kill_switch(active: bool, operator: str, reason: str) -> dict:
 
 # ---------------------------------------------------------------- rules
 def _rule_matches(rule: dict, ticket: Ticket, classification: Classification) -> bool:
-    text = f"{ticket.subject} {ticket.body}".lower()
-    kind = rule["kind"]
-    if kind == "intent_in":
-        return classification.intent in rule["intents"]
-    if kind == "text_pattern":
-        return re.search(rule["pattern"], text) is not None
-    if kind == "intent_and_pattern":
-        return classification.intent in rule["intents"] and re.search(rule["pattern"], text) is not None
-    return False
+    return policy_rules.matches(rule, f"{ticket.subject} {ticket.body}", classification.intent)
 
 
 def fired_rules(ticket: Ticket, classification: Classification) -> list[dict]:
     return [rule for rule in sorted(POLICY["rules"], key=lambda r: r["priority"])
-            if rule["kind"] != "kill_switch" and _rule_matches(rule, ticket, classification)]
+            if rule["kind"] != "kill_switch" and policy_rules.is_active(rule, POLICY.get("effective_from"))
+            and _rule_matches(rule, ticket, classification)]
 
 
 def protected_reason(ticket: Ticket, classification: Classification) -> str | None:
@@ -95,7 +101,8 @@ def protected_reason(ticket: Ticket, classification: Classification) -> str | No
 
 def thresholds_applied() -> dict:
     return {"intent_confidence": AUTO_THRESHOLD, "min_training_similarity": NOVELTY_THRESHOLD,
-            "document_confidence": DOCUMENT_THRESHOLD, "evidence_score": EVIDENCE_THRESHOLD}
+            "document_confidence": DOCUMENT_THRESHOLD, "retrieval_strategy": RETRIEVAL_STRATEGY,
+            "evidence_score_by_strategy": dict(EVIDENCE_BY_STRATEGY)}
 
 
 def _decision(action: str, codes: list[str], reason: str, threshold: float, rule_ids: list[str] | None = None) -> Decision:
@@ -107,7 +114,8 @@ def escalate(code: str, reason: str, threshold: float | None = None, rule_ids: l
     return _decision("escalate", [code], reason, AUTO_THRESHOLD if threshold is None else threshold, rule_ids)
 
 
-def route(ticket: Ticket, classification: Classification, evidence_score: float = 0, has_approved_article: bool = True) -> Decision:
+def route(ticket: Ticket, classification: Classification, evidence_score: float = 0, has_approved_article: bool = True,
+          retrieval_strategy: str = "lexical") -> Decision:
     """Deterministic: identical ticket, classification and policy version give an identical decision."""
     if kill_switch_state()["active"]:
         rule = POLICY["rules"][0]
@@ -125,9 +133,10 @@ def route(ticket: Ticket, classification: Classification, evidence_score: float 
         return escalate("low_intent_confidence", f"The ticket type is uncertain (confidence {classification.intent_confidence:.2f} is below {AUTO_THRESHOLD:.2f}).")
     if not has_approved_article:
         return escalate("no_approved_article", "No approved article covers this type of request.")
-    if evidence_score < EVIDENCE_THRESHOLD:
-        return escalate("insufficient_evidence", f"No approved passage was relevant enough (best score {evidence_score:.2f}, needed {EVIDENCE_THRESHOLD:.2f}).",
-                        threshold=EVIDENCE_THRESHOLD)
+    needed = evidence_threshold(retrieval_strategy)
+    if evidence_score < needed:
+        return escalate("insufficient_evidence", f"No approved passage was relevant enough ({retrieval_strategy} score {evidence_score:.2f}, needed {needed:.2f}).",
+                        threshold=needed)
     return _decision("answer", ["eligible", "evidence_sufficient"],
                      f"No protective rule fired, intent confidence {classification.intent_confidence:.2f} ≥ {AUTO_THRESHOLD:.2f} "
-                     f"and approved evidence score {evidence_score:.2f} ≥ {EVIDENCE_THRESHOLD:.2f}.", AUTO_THRESHOLD)
+                     f"and approved {retrieval_strategy} evidence score {evidence_score:.2f} ≥ {needed:.2f}.", AUTO_THRESHOLD)

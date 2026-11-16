@@ -6,7 +6,7 @@ import re
 from cloudserve.azure import ModelUnavailable, chat
 from cloudserve.classifier import approved_docs_by_intent, predict_document
 from cloudserve.contracts import Classification, EvidenceBundle, Passage, QueryPlan, Ticket
-from cloudserve.knowledge import document_passages, retrieve
+from cloudserve.knowledge import document_passages, retrieve, retrieve_with_strategy
 from cloudserve.config import APP_ROOT
 from cloudserve.knowledge_store import KnowledgeStore
 
@@ -92,25 +92,32 @@ class EvidenceAgent:
         return QueryPlan(ticket_id=ticket.ticket_id, path="approved_document", query=query,
                          allowed_doc_ids=scope, max_searches=2, source_revision=revision)
 
-    def gather(self, ticket: Ticket, classification: Classification) -> EvidenceBundle:
-        from cloudserve.policy import EVIDENCE_THRESHOLD
+    def search(self, query: str, allowed: set[str], strategy: str) -> tuple[list[Passage], str, str | None]:
+        """One bounded search; only Resolution passages are primary evidence."""
+        found, used, fallback = retrieve_with_strategy(query, limit=5, allowed_doc_ids=allowed, strategy=strategy)
+        return [p for p in found if p.section == "Resolution"], used, fallback
 
+    def gather(self, ticket: Ticket, classification: Classification, strategy: str | None = None) -> EvidenceBundle:
+        from cloudserve import policy
+
+        strategy = strategy or policy.RETRIEVAL_STRATEGY
         plan = self.plan(ticket, classification)
         if plan.path != "approved_document":
             return EvidenceBundle(ticket_id=ticket.ticket_id, snapshot_revision=plan.source_revision,
-                                  passages=[], searches=0, sufficient=False, reason="no_approved_article")
+                                  passages=[], searches=0, sufficient=False, reason="no_approved_article",
+                                  retrieval_strategy=strategy)
         _, doc_confidence = predict_document(ticket)
         query = plan.query
         allowed = set(plan.allowed_doc_ids)
-        passages = [p for p in retrieve(query, limit=5, allowed_doc_ids=allowed) if p.section == "Resolution"]
+        passages, used, fallback = self.search(query, allowed, strategy)
         queries = [query]
-        if not (passages and passages[0].score >= EVIDENCE_THRESHOLD):
+        if not (passages and passages[0].score >= policy.evidence_threshold(used)):
             rewritten = f"{classification.intent.replace('_', ' ')} {query}"
             queries.append(rewritten)
-            retry = [p for p in retrieve(rewritten, limit=5, allowed_doc_ids=allowed) if p.section == "Resolution"]
+            retry, used_retry, fallback_retry = self.search(rewritten, allowed, strategy)
             if retry and (not passages or retry[0].score > passages[0].score):
-                passages = retry
-        sufficient = bool(passages and passages[0].score >= EVIDENCE_THRESHOLD)
+                passages, used, fallback = retry, used_retry, fallback_retry or fallback
+        sufficient = bool(passages and passages[0].score >= policy.evidence_threshold(used))
         supporting = []
         if passages:
             supporting = [p for p in document_passages(passages[0].doc_id)
@@ -120,7 +127,8 @@ class EvidenceAgent:
                               reason="approved_resolution_found" if sufficient else "insufficient_evidence",
                               queries=queries, document_id=passages[0].doc_id if passages else None,
                               document_confidence=round(min(1.0, doc_confidence), 6),
-                              top_score=passages[0].score if passages else 0.0, supporting_passages=supporting)
+                              top_score=passages[0].score if passages else 0.0, supporting_passages=supporting,
+                              retrieval_strategy=used, fallback_reason=fallback)
 
 
 def _bullets(text: str) -> list[str]:

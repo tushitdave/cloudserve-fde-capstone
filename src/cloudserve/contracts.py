@@ -75,6 +75,7 @@ class HumanResolution(BaseModel):
     reviewer: str
     resolution_type: Literal["answered_by_human", "closed_without_answer"]
     notes: str
+    reviewer_key_id: str | None = None
     resolved_at: str = Field(default_factory=utc_now)
 
 
@@ -125,6 +126,8 @@ class EvidenceBundle(BaseModel):
     reason: str = ""
     queries: list[str] = Field(default_factory=list, max_length=2)
     document_id: str | None = None
+    retrieval_strategy: str = "lexical"
+    fallback_reason: str | None = None
     document_confidence: float = Field(default=0, ge=0, le=1)
     top_score: float = 0
     supporting_passages: list[Passage] = []

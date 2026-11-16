@@ -220,6 +220,18 @@
           "title": "Notes",
           "type": "string"
         },
+        "reviewer_key_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewer Key Id"
+        },
         "resolved_at": {
           "title": "Resolved At",
           "type": "string"

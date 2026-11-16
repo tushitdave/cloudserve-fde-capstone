@@ -123,11 +123,11 @@ def test_kill_switch_api_round_trip(tmp_path, monkeypatch):
 
     async def scenario():
         status, active = await request("GET", "/v1/policy/active")
-        assert status == 200 and active["policy_version"] == "policy-v2" and active["kill_switch"]["active"] is False
+        assert status == 200 and active["policy_version"] == "policy-v3" and active["kill_switch"]["active"] is False
         status, _ = await request("POST", "/v1/policy/kill-switch", {"active": True, "operator": "", "reason": "x"})
         assert status == 422
         status, state = await request("POST", "/v1/policy/kill-switch", {"active": True, "operator": "Head of support", "reason": "bad answers reported"})
-        assert status == 200 and state["active"] is True and state["operator"] == "Head of support"
+        assert status == 200 and state["active"] is True and state["operator"].startswith("Head of support")
         status, state = await request("POST", "/v1/policy/kill-switch", {"active": False, "operator": "Head of support", "reason": "issue fixed"})
         assert status == 200 and state["active"] is False
 

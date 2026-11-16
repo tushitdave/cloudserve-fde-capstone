@@ -13,93 +13,123 @@
   "out_of_scope_tickets": 12,
   "objective": "maximise automatic coverage subject to constraints; tie-break toward stricter thresholds",
   "chosen": {
+    "retrieval_strategy": "hybrid",
     "intent_confidence": 0.9,
     "min_training_similarity": 0.35,
-    "document_confidence": 0.3,
-    "evidence_score": 0.06,
-    "sent": 82,
-    "coverage": 0.7961,
+    "document_confidence": 0.2,
+    "evidence_score": 0.1,
+    "sent": 87,
+    "coverage": 0.8447,
     "protected_false_auto": 0,
     "wrong_article": 2,
-    "wrong_article_rate": 0.0244,
-    "label_escalate_but_sent": 17,
-    "safe_auto": 64,
-    "safe_auto_recall": 0.9014,
+    "wrong_article_rate": 0.023,
+    "label_escalate_but_sent": 18,
+    "safe_auto": 68,
+    "safe_auto_recall": 0.9577,
+    "fluency_gap_points": 3.63,
     "out_of_scope_sent": 0
   },
+  "best_per_strategy": {
+    "lexical": {
+      "coverage": 0.7961,
+      "safe_auto_recall": 0.9014,
+      "wrong_article_rate": 0.0244,
+      "fluency_gap_points": 23.31,
+      "evidence_score": 0.06,
+      "intent_confidence": 0.3,
+      "min_training_similarity": 0.3,
+      "document_confidence": 0.3
+    },
+    "dense": {
+      "coverage": 0.835,
+      "safe_auto_recall": 0.9155,
+      "wrong_article_rate": 0.0465,
+      "fluency_gap_points": 25.06,
+      "evidence_score": 0.3,
+      "intent_confidence": 0.3,
+      "min_training_similarity": 0.3,
+      "document_confidence": 0.3
+    },
+    "hybrid": {
+      "coverage": 0.8447,
+      "safe_auto_recall": 0.9577,
+      "wrong_article_rate": 0.023,
+      "fluency_gap_points": 3.63,
+      "evidence_score": 0.1,
+      "intent_confidence": 0.3,
+      "min_training_similarity": 0.3,
+      "document_confidence": 0.2
+    },
+    "hybrid_rerank": {
+      "coverage": 0.8447,
+      "safe_auto_recall": 0.9577,
+      "wrong_article_rate": 0.023,
+      "fluency_gap_points": 21.43,
+      "evidence_score": 0.001,
+      "intent_confidence": 0.3,
+      "min_training_similarity": 0.2,
+      "document_confidence": 0.3
+    }
+  },
   "evidence_risk_coverage_curve_at_other_chosen_thresholds": {
-    "0.04": {
-      "coverage": 0.7961,
-      "wrong_article_rate": 0.0244,
-      "protected_false_auto": 0,
-      "out_of_scope_sent": 0,
-      "safe_auto_recall": 0.9014
-    },
-    "0.06": {
-      "coverage": 0.7961,
-      "wrong_article_rate": 0.0244,
-      "protected_false_auto": 0,
-      "out_of_scope_sent": 0,
-      "safe_auto_recall": 0.9014
-    },
-    "0.08": {
-      "coverage": 0.7476,
-      "wrong_article_rate": 0.026,
-      "protected_false_auto": 0,
-      "out_of_scope_sent": 0,
-      "safe_auto_recall": 0.8592
-    },
     "0.1": {
-      "coverage": 0.6699,
-      "wrong_article_rate": 0.0145,
+      "coverage": 0.8447,
+      "wrong_article_rate": 0.023,
       "protected_false_auto": 0,
       "out_of_scope_sent": 0,
-      "safe_auto_recall": 0.7887
+      "safe_auto_recall": 0.9577
     },
-    "0.11": {
-      "coverage": 0.6019,
-      "wrong_article_rate": 0.0161,
+    "0.15": {
+      "coverage": 0.8058,
+      "wrong_article_rate": 0.0241,
       "protected_false_auto": 0,
       "out_of_scope_sent": 0,
-      "safe_auto_recall": 0.7042
+      "safe_auto_recall": 0.9155
     },
-    "0.12": {
-      "coverage": 0.6019,
-      "wrong_article_rate": 0.0161,
+    "0.2": {
+      "coverage": 0.8058,
+      "wrong_article_rate": 0.0241,
       "protected_false_auto": 0,
       "out_of_scope_sent": 0,
-      "safe_auto_recall": 0.7042
+      "safe_auto_recall": 0.9155
     },
-    "0.14": {
-      "coverage": 0.5728,
-      "wrong_article_rate": 0.0169,
+    "0.25": {
+      "coverage": 0.7864,
+      "wrong_article_rate": 0.0247,
       "protected_false_auto": 0,
       "out_of_scope_sent": 0,
-      "safe_auto_recall": 0.662
+      "safe_auto_recall": 0.9014
     },
-    "0.16": {
-      "coverage": 0.4466,
-      "wrong_article_rate": 0.0,
+    "0.3": {
+      "coverage": 0.7379,
+      "wrong_article_rate": 0.0263,
       "protected_false_auto": 0,
       "out_of_scope_sent": 0,
-      "safe_auto_recall": 0.507
+      "safe_auto_recall": 0.831
     },
-    "0.18": {
-      "coverage": 0.3689,
+    "0.35": {
+      "coverage": 0.5631,
+      "wrong_article_rate": 0.0172,
+      "protected_false_auto": 0,
+      "out_of_scope_sent": 0,
+      "safe_auto_recall": 0.6338
+    },
+    "0.4": {
+      "coverage": 0.3592,
       "wrong_article_rate": 0.0,
       "protected_false_auto": 0,
       "out_of_scope_sent": 0,
       "safe_auto_recall": 0.4225
     },
-    "0.2": {
-      "coverage": 0.3204,
+    "0.45": {
+      "coverage": 0.2039,
       "wrong_article_rate": 0.0,
       "protected_false_auto": 0,
       "out_of_scope_sent": 0,
-      "safe_auto_recall": 0.3803
+      "safe_auto_recall": 0.2535
     }
   },
-  "grid_size": 1680,
-  "eligible_configurations": 1288,
+  "grid_size": 5712,
+  "eligible_configurations": 4676,
   "label_noise_note": "Identical ticket text carries different expected_route/answerable labels in 40 of 191 duplicate-text groups of non-protected tickets (dev+validation). label_escalate_but_sent therefore cannot be driven to zero by any text-based rule and is reported, not optimised."
 }

@@ -122,6 +122,23 @@
       "default": null,
       "title": "Document Id"
     },
+    "retrieval_strategy": {
+      "default": "lexical",
+      "title": "Retrieval Strategy",
+      "type": "string"
+    },
+    "fallback_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fallback Reason"
+    },
     "document_confidence": {
       "default": 0,
       "maximum": 1,
