@@ -25,7 +25,7 @@
         "max_iter": 2000,
         "C": 1.0
       },
-      "artifact_sha256": "d3d32bcad41863d5c1d66f6d17657e64cee332b55036a93e95b5ab12d0a0b951",
+      "artifact_sha256": "964b173f0ab7aae13884d20731470ba771582852b843bcfa72b92c6ccf511c08",
       "calibration": {
         "method": "temperature scaling (NLL on calibration split)",
         "temperature": 0.05
@@ -67,7 +67,7 @@
         "max_iter": 2000,
         "C": 1.0
       },
-      "artifact_sha256": "a47da2d691133f5854ef7c022d24ed9a531d75432241d9955cc97872d3efc320",
+      "artifact_sha256": "53abe5e9ab310761518e43992919a1b060aaaf13965d9cb0e1e5090259cc9edf",
       "calibration": {
         "method": "temperature scaling (NLL on calibration split)",
         "temperature": 1.0516

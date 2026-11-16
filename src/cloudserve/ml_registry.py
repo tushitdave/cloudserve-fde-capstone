@@ -52,10 +52,11 @@ def _artifact_hash(head) -> str:
     lr = head.model.named_steps["logisticregression"]
     vec = head.model.named_steps["tfidfvectorizer"]
     digest = hashlib.sha256()
-    digest.update(np.ascontiguousarray(lr.coef_).tobytes())
-    digest.update(np.ascontiguousarray(lr.intercept_).tobytes())
+    # Rounded so the fingerprint is stable across BLAS/OS float noise (~1e-12) yet changes with any real retrain.
+    digest.update(np.ascontiguousarray(np.round(lr.coef_, 4) + 0.0).tobytes())
+    digest.update(np.ascontiguousarray(np.round(lr.intercept_, 4) + 0.0).tobytes())
     digest.update(json.dumps(sorted((k, int(v)) for k, v in vec.vocabulary_.items())).encode())
-    digest.update(str(head.temperature).encode())
+    digest.update(f"{head.temperature:.3f}".encode())
     return digest.hexdigest()
 
 
