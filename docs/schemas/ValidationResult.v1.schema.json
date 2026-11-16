@@ -1,0 +1,32 @@
+{
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "valid": {
+      "title": "Valid",
+      "type": "boolean"
+    },
+    "findings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "validator_version": {
+      "minLength": 1,
+      "title": "Validator Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "valid",
+    "findings",
+    "validator_version"
+  ],
+  "title": "ValidationResult",
+  "type": "object"
+}

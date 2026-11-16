@@ -1,0 +1,40 @@
+{
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "job_id": {
+      "minLength": 1,
+      "title": "Job Id",
+      "type": "string"
+    },
+    "doc_id": {
+      "minLength": 1,
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "reasons": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Reasons",
+      "type": "array"
+    },
+    "source_hash": {
+      "minLength": 12,
+      "title": "Source Hash",
+      "type": "string"
+    }
+  },
+  "required": [
+    "job_id",
+    "doc_id",
+    "reasons",
+    "source_hash"
+  ],
+  "title": "QuarantineRecord",
+  "type": "object"
+}

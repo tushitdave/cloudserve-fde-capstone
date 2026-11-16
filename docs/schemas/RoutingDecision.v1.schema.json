@@ -1,0 +1,45 @@
+{
+  "properties": {
+    "action": {
+      "enum": [
+        "answer",
+        "escalate"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "reason_codes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Reason Codes",
+      "type": "array"
+    },
+    "reason": {
+      "title": "Reason",
+      "type": "string"
+    },
+    "policy_version": {
+      "default": "policy-v1",
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "threshold": {
+      "title": "Threshold",
+      "type": "number"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "action",
+    "reason_codes",
+    "reason",
+    "threshold"
+  ],
+  "title": "RoutingDecision",
+  "type": "object"
+}

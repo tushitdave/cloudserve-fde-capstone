@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "Passage": {
+      "properties": {
+        "doc_id": {
+          "title": "Doc Id",
+          "type": "string"
+        },
+        "passage_id": {
+          "title": "Passage Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "section": {
+          "title": "Section",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "source_version": {
+          "title": "Source Version",
+          "type": "string"
+        },
+        "start_offset": {
+          "default": 0,
+          "title": "Start Offset",
+          "type": "integer"
+        },
+        "end_offset": {
+          "default": 0,
+          "title": "End Offset",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "doc_id",
+        "passage_id",
+        "title",
+        "section",
+        "text",
+        "score",
+        "source_version"
+      ],
+      "title": "Passage",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "ticket_id": {
+      "minLength": 1,
+      "title": "Ticket Id",
+      "type": "string"
+    },
+    "snapshot_revision": {
+      "minimum": 0,
+      "title": "Snapshot Revision",
+      "type": "integer"
+    },
+    "passages": {
+      "items": {
+        "$ref": "#/$defs/Passage"
+      },
+      "title": "Passages",
+      "type": "array"
+    },
+    "searches": {
+      "maximum": 2,
+      "minimum": 0,
+      "title": "Searches",
+      "type": "integer"
+    },
+    "sufficient": {
+      "title": "Sufficient",
+      "type": "boolean"
+    },
+    "reason": {
+      "default": "",
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "ticket_id",
+    "snapshot_revision",
+    "passages",
+    "searches",
+    "sufficient"
+  ],
+  "title": "EvidenceBundle",
+  "type": "object"
+}

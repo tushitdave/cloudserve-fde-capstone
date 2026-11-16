@@ -1,0 +1,47 @@
+{
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot_revision": {
+      "minimum": 0,
+      "title": "Snapshot Revision",
+      "type": "integer"
+    },
+    "documents": {
+      "minimum": 0,
+      "title": "Documents",
+      "type": "integer"
+    },
+    "passages": {
+      "minimum": 0,
+      "title": "Passages",
+      "type": "integer"
+    },
+    "index_version": {
+      "minLength": 1,
+      "title": "Index Version",
+      "type": "string"
+    },
+    "approved": {
+      "title": "Approved",
+      "type": "boolean"
+    },
+    "dense_ready": {
+      "title": "Dense Ready",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "snapshot_revision",
+    "documents",
+    "passages",
+    "index_version",
+    "approved",
+    "dense_ready"
+  ],
+  "title": "IndexManifest",
+  "type": "object"
+}

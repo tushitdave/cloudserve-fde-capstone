@@ -1,0 +1,63 @@
+{
+  "properties": {
+    "intent": {
+      "title": "Intent",
+      "type": "string"
+    },
+    "urgency": {
+      "title": "Urgency",
+      "type": "string"
+    },
+    "intent_confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Intent Confidence",
+      "type": "number"
+    },
+    "urgency_confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Urgency Confidence",
+      "type": "number"
+    },
+    "answerability_confidence": {
+      "default": 0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Answerability Confidence",
+      "type": "number"
+    },
+    "alternatives": {
+      "default": [],
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Alternatives",
+      "type": "array"
+    },
+    "model_version": {
+      "default": "tfidf-logreg-v1",
+      "title": "Model Version",
+      "type": "string"
+    },
+    "calibrated": {
+      "default": false,
+      "title": "Calibrated",
+      "type": "boolean"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "intent",
+    "urgency",
+    "intent_confidence",
+    "urgency_confidence"
+  ],
+  "title": "ClassificationResult",
+  "type": "object"
+}

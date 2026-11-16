@@ -1,0 +1,40 @@
+{
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "supported": {
+      "title": "Supported",
+      "type": "boolean"
+    },
+    "citation_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Citation Ids",
+      "type": "array"
+    },
+    "unsupported_claims": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Unsupported Claims",
+      "type": "array"
+    },
+    "verifier_version": {
+      "minLength": 1,
+      "title": "Verifier Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "supported",
+    "citation_ids",
+    "unsupported_claims",
+    "verifier_version"
+  ],
+  "title": "VerificationReport",
+  "type": "object"
+}

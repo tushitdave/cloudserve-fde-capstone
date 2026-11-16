@@ -1,0 +1,66 @@
+{
+  "properties": {
+    "doc_id": {
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "passage_id": {
+      "title": "Passage Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "section": {
+      "title": "Section",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "score": {
+      "title": "Score",
+      "type": "number"
+    },
+    "source_version": {
+      "title": "Source Version",
+      "type": "string"
+    },
+    "start_offset": {
+      "default": 0,
+      "title": "Start Offset",
+      "type": "integer"
+    },
+    "end_offset": {
+      "default": 0,
+      "title": "End Offset",
+      "type": "integer"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "permissions": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Permissions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "doc_id",
+    "passage_id",
+    "title",
+    "section",
+    "text",
+    "score",
+    "source_version"
+  ],
+  "title": "KnowledgeChunk",
+  "type": "object"
+}

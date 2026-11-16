@@ -1,0 +1,5 @@
+# AI tool use declaration for the project report
+
+An OpenAI coding assistant supported research synthesis, architecture discussion, Python/FastAPI and React implementation, test creation, evaluation scripts and documentation. The student supplied the capstone brief, design direction, Azure deployment choices, UI palette and review feedback. The assistant's output was checked with local tests, batch runs and source inspection where available. Live browser, Docker and Azure dense-index checks remain unverified in this managed environment. The student is responsible for reviewing this declaration, the final code and all report claims before submission.
+
+The project uses standard open-source packages listed in `requirements.txt` and `frontend/package-lock.json`. No third-party source code is intentionally copied into the application beyond those package dependencies. Research references and the capstone-supplied dataset are listed in `Research/` and the report source notes. This declaration should be included in the final PDF report and updated if additional tools or outside code are used.

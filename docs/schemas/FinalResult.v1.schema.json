@@ -1,0 +1,371 @@
+{
+  "$defs": {
+    "Classification": {
+      "properties": {
+        "intent": {
+          "title": "Intent",
+          "type": "string"
+        },
+        "urgency": {
+          "title": "Urgency",
+          "type": "string"
+        },
+        "intent_confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Intent Confidence",
+          "type": "number"
+        },
+        "urgency_confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Urgency Confidence",
+          "type": "number"
+        },
+        "answerability_confidence": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Answerability Confidence",
+          "type": "number"
+        },
+        "alternatives": {
+          "default": [],
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        },
+        "model_version": {
+          "default": "tfidf-logreg-v1",
+          "title": "Model Version",
+          "type": "string"
+        },
+        "calibrated": {
+          "default": false,
+          "title": "Calibrated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "intent",
+        "urgency",
+        "intent_confidence",
+        "urgency_confidence"
+      ],
+      "title": "Classification",
+      "type": "object"
+    },
+    "Decision": {
+      "properties": {
+        "action": {
+          "enum": [
+            "answer",
+            "escalate"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "reason_codes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "policy_version": {
+          "default": "policy-v1",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "threshold": {
+          "title": "Threshold",
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "reason_codes",
+        "reason",
+        "threshold"
+      ],
+      "title": "Decision",
+      "type": "object"
+    },
+    "EscalationPacket": {
+      "properties": {
+        "schema_version": {
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "ticket_id": {
+          "title": "Ticket Id",
+          "type": "string"
+        },
+        "trace_id": {
+          "title": "Trace Id",
+          "type": "string"
+        },
+        "reason_codes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "known": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Known",
+          "type": "array"
+        },
+        "unknown": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unknown",
+          "type": "array"
+        },
+        "next_step": {
+          "title": "Next Step",
+          "type": "string"
+        },
+        "candidate_passage_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidate Passage Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "ticket_id",
+        "trace_id",
+        "reason_codes",
+        "summary",
+        "known",
+        "unknown",
+        "next_step"
+      ],
+      "title": "EscalationPacket",
+      "type": "object"
+    },
+    "HumanResolution": {
+      "properties": {
+        "schema_version": {
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "ticket_id": {
+          "title": "Ticket Id",
+          "type": "string"
+        },
+        "reviewer": {
+          "title": "Reviewer",
+          "type": "string"
+        },
+        "resolution_type": {
+          "enum": [
+            "answered_by_human",
+            "closed_without_answer"
+          ],
+          "title": "Resolution Type",
+          "type": "string"
+        },
+        "notes": {
+          "title": "Notes",
+          "type": "string"
+        },
+        "resolved_at": {
+          "title": "Resolved At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ticket_id",
+        "reviewer",
+        "resolution_type",
+        "notes"
+      ],
+      "title": "HumanResolution",
+      "type": "object"
+    },
+    "Passage": {
+      "properties": {
+        "doc_id": {
+          "title": "Doc Id",
+          "type": "string"
+        },
+        "passage_id": {
+          "title": "Passage Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "section": {
+          "title": "Section",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "source_version": {
+          "title": "Source Version",
+          "type": "string"
+        },
+        "start_offset": {
+          "default": 0,
+          "title": "Start Offset",
+          "type": "integer"
+        },
+        "end_offset": {
+          "default": 0,
+          "title": "End Offset",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "doc_id",
+        "passage_id",
+        "title",
+        "section",
+        "text",
+        "score",
+        "source_version"
+      ],
+      "title": "Passage",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "ticket_id": {
+      "title": "Ticket Id",
+      "type": "string"
+    },
+    "trace_id": {
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "terminal_state": {
+      "enum": [
+        "sent",
+        "escalated"
+      ],
+      "title": "Terminal State",
+      "type": "string"
+    },
+    "customer_message": {
+      "title": "Customer Message",
+      "type": "string"
+    },
+    "classification": {
+      "$ref": "#/$defs/Classification"
+    },
+    "decision": {
+      "$ref": "#/$defs/Decision"
+    },
+    "citations": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Passage"
+      },
+      "title": "Citations",
+      "type": "array"
+    },
+    "escalation_summary": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Escalation Summary"
+    },
+    "escalation_packet": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EscalationPacket"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "human_resolution": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/HumanResolution"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "guardrail_findings": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Guardrail Findings",
+      "type": "array"
+    },
+    "agent_steps": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Agent Steps",
+      "type": "array"
+    },
+    "completed_at": {
+      "title": "Completed At",
+      "type": "string"
+    },
+    "latency_ms": {
+      "default": 0,
+      "title": "Latency Ms",
+      "type": "integer"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "ticket_id",
+    "trace_id",
+    "terminal_state",
+    "customer_message",
+    "classification",
+    "decision"
+  ],
+  "title": "FinalResult",
+  "type": "object"
+}

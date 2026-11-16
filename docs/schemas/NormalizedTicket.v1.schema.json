@@ -1,0 +1,63 @@
+{
+  "properties": {
+    "ticket_id": {
+      "title": "Ticket Id",
+      "type": "string"
+    },
+    "channel": {
+      "enum": [
+        "email",
+        "chat",
+        "docs_comment",
+        "forum"
+      ],
+      "title": "Channel",
+      "type": "string"
+    },
+    "subject": {
+      "default": "",
+      "title": "Subject",
+      "type": "string"
+    },
+    "body": {
+      "default": "",
+      "title": "Body",
+      "type": "string"
+    },
+    "received_at": {
+      "title": "Received At",
+      "type": "string"
+    },
+    "customer_id": {
+      "default": "anonymous",
+      "title": "Customer Id",
+      "type": "string"
+    },
+    "customer_tier": {
+      "default": "unknown",
+      "title": "Customer Tier",
+      "type": "string"
+    },
+    "customer_region": {
+      "default": "unknown",
+      "title": "Customer Region",
+      "type": "string"
+    },
+    "language_fluency": {
+      "default": "unknown",
+      "title": "Language Fluency",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "ticket_id",
+    "channel"
+  ],
+  "title": "NormalizedTicket",
+  "type": "object"
+}

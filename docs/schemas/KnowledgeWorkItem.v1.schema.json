@@ -1,0 +1,44 @@
+{
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "job_id": {
+      "minLength": 1,
+      "title": "Job Id",
+      "type": "string"
+    },
+    "doc_id": {
+      "minLength": 1,
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "pending_review",
+        "approved",
+        "published",
+        "rejected",
+        "quarantined",
+        "unchanged"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "source_hash": {
+      "minLength": 12,
+      "title": "Source Hash",
+      "type": "string"
+    }
+  },
+  "required": [
+    "job_id",
+    "doc_id",
+    "status",
+    "source_hash"
+  ],
+  "title": "KnowledgeWorkItem",
+  "type": "object"
+}
