@@ -10,7 +10,8 @@ from pathlib import Path
 
 from cloudserve.config import runtime_dir
 from cloudserve.knowledge import manifest as knowledge_manifest
-from cloudserve.policy import POLICY_VERSION, kill_switch_state, thresholds_applied
+from cloudserve.ml_registry import drift_report
+from cloudserve.policy import NOVELTY_THRESHOLD, POLICY_VERSION, kill_switch_state, thresholds_applied
 from cloudserve.service import TicketService
 
 
@@ -176,6 +177,12 @@ def run(input_path: Path, output_path: Path, mode: str = "extractive") -> dict:
         results.append(result.model_dump())
     metrics = score(rows, results)
     metrics["decisions_logged"] = service.store.counts()["decisions_logged"]
+    usable = [(row, result) for row, result in zip(rows, results) if isinstance(row, dict)]
+    metrics["drift"] = drift_report([f"{row.get('subject') or ''} {row.get('body') or ''}".strip() for row, _ in usable],
+                                    [r["classification"]["intent"] for _, r in usable],
+                                    [float(r["classification"]["intent_confidence"]) for _, r in usable],
+                                    [float(r["classification"].get("nearest_training_similarity", 1)) for _, r in usable],
+                                    NOVELTY_THRESHOLD)
     input_ids = [str(row.get("ticket_id") or f"INPUT-{number:06d}") if isinstance(row, dict) else f"INPUT-{number:06d}"
                  for number, row in enumerate(rows, 1)]
     terminal_ids = [result["ticket_id"] for result in results]

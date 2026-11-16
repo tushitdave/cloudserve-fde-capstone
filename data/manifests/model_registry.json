@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0",
+  "models": [
+    {
+      "model_id": "intent-tfidf-logreg-v2+temperature",
+      "head": "intent",
+      "version": "tfidf-logreg-v2+temperature",
+      "dataset": {
+        "source": "data/supplied/development_tickets.json",
+        "sha256": "5a0d8912238ee9fde07b4b793bda4672261fbf3ab965bf3eb418ef6e87f95d78",
+        "split_manifest": "data/manifests/development_split_v1.json",
+        "split_sha256": "2f9f514ba18ae0f5c262c00bd6ffd24c521ba5284470430ae6f7969e34c86060",
+        "train_rows": 397,
+        "calibration_rows": 103,
+        "visible_validation_used": false
+      },
+      "features": {
+        "input": "subject + body text only (no customer identity, tier, region or history)",
+        "vectorizer": "TF-IDF word 1-2 grams, sublinear tf, max 25000 features",
+        "vocabulary_size": 2616
+      },
+      "hyperparameters": {
+        "estimator": "LogisticRegression",
+        "class_weight": "balanced",
+        "max_iter": 2000,
+        "C": 1.0
+      },
+      "artifact_sha256": "d3d32bcad41863d5c1d66f6d17657e64cee332b55036a93e95b5ab12d0a0b951",
+      "calibration": {
+        "method": "temperature scaling (NLL on calibration split)",
+        "temperature": 0.05
+      },
+      "validation_report": {
+        "accuracy": 1.0,
+        "ece": 0.0016,
+        "brier_top_label": 0.0002
+      },
+      "promotion": {
+        "status": "promoted",
+        "promoted_on": "2026-11-16",
+        "approved_by": "Student acting as policy owner (capstone)",
+        "replaces": "tfidf-logreg-v1 (trained on all 500 tickets, uncalibrated; ECE 0.456)",
+        "evidence": "PRD revision R1; data/manifests/calibration_report_v1.json"
+      }
+    },
+    {
+      "model_id": "urgency-tfidf-logreg-v2+temperature",
+      "head": "urgency",
+      "version": "tfidf-logreg-v2+temperature",
+      "dataset": {
+        "source": "data/supplied/development_tickets.json",
+        "sha256": "5a0d8912238ee9fde07b4b793bda4672261fbf3ab965bf3eb418ef6e87f95d78",
+        "split_manifest": "data/manifests/development_split_v1.json",
+        "split_sha256": "2f9f514ba18ae0f5c262c00bd6ffd24c521ba5284470430ae6f7969e34c86060",
+        "train_rows": 397,
+        "calibration_rows": 103,
+        "visible_validation_used": false
+      },
+      "features": {
+        "input": "subject + body text only (no customer identity, tier, region or history)",
+        "vectorizer": "TF-IDF word 1-2 grams, sublinear tf, max 25000 features",
+        "vocabulary_size": 2616
+      },
+      "hyperparameters": {
+        "estimator": "LogisticRegression",
+        "class_weight": "balanced",
+        "max_iter": 2000,
+        "C": 1.0
+      },
+      "artifact_sha256": "a47da2d691133f5854ef7c022d24ed9a531d75432241d9955cc97872d3efc320",
+      "calibration": {
+        "method": "temperature scaling (NLL on calibration split)",
+        "temperature": 1.0516
+      },
+      "validation_report": {
+        "accuracy": 0.5049,
+        "ece": 0.0554,
+        "brier_top_label": 0.2508
+      },
+      "promotion": {
+        "status": "promoted",
+        "promoted_on": "2026-11-16",
+        "approved_by": "Student acting as policy owner (capstone)",
+        "replaces": "tfidf-logreg-v1 (trained on all 500 tickets, uncalibrated; ECE 0.456)",
+        "evidence": "PRD revision R1; data/manifests/calibration_report_v1.json"
+      }
+    }
+  ],
+  "drift_thresholds": {
+    "intent_psi": 0.25,
+    "length_ratio_change": 0.5,
+    "oov_rate_ratio": 2.0,
+    "novel_share": 0.1,
+    "mean_confidence_drop": 0.1
+  },
+  "retraining_criteria": [
+    "Any drift monitor above its threshold on a production window of at least 200 tickets.",
+    "Held-out intent ECE above 0.05 or per-class precision below 0.85 on newly labelled tickets.",
+    "A new intent or approved article is introduced.",
+    "Retraining uses a new frozen split; the candidate must pass promotion_check against the promoted model and be approved by the policy owner."
+  ],
+  "reference_profile": {
+    "intent_distribution": {
+      "account_access": 0.05037783375314862,
+      "api_key_issue": 0.04030226700251889,
+      "api_usage_question": 0.037783375314861464,
+      "authentication_failure": 0.04534005037783375,
+      "billing_query": 0.04534005037783375,
+      "compliance_request": 0.055415617128463476,
+      "configuration_help": 0.030226700251889168,
+      "data_export": 0.04785894206549118,
+      "data_residency": 0.060453400503778336,
+      "database_issue": 0.05793450881612091,
+      "deployment_failure": 0.060453400503778336,
+      "feature_request": 0.042821158690176324,
+      "integration_help": 0.04534005037783375,
+      "onboarding": 0.04534005037783375,
+      "performance_degradation": 0.04785894206549118,
+      "quota_or_overage": 0.0327455919395466,
+      "rate_limit": 0.020151133501259445,
+      "rollback_request": 0.060453400503778336,
+      "security_incident": 0.05793450881612091,
+      "sso_configuration": 0.05289672544080604,
+      "unclear_request": 0.027707808564231738,
+      "webhook_issue": 0.03526448362720403
+    },
+    "median_words": 28,
+    "oov_rate": 0.06598447424135498,
+    "mean_intent_confidence": 0.99841125260318,
+    "novel_share": 0.019417475728155338
+  }
+}
