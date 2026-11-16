@@ -82,7 +82,7 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 | [ ] | P0-04 | Add one-command development startup, batch run and tests to README. | Commands copied literally into a clean directory succeed. |
 | [ ] | P0-05 | Add CI for syntax, unit/contract/integration checks and secret scan. | CI workflow run ID and passing log. |
 | [ ] | P0-06 | Verify FastAPI ↔ Nginx ↔ React health path in a built container stack. | `GET /api/health` returns `ok`; browser screenshot or command output saved. |
-| [ ] | P0-07 | Run a clean-checkout rehearsal on another directory/machine. | Rehearsal log with OS, commands, versions and result. |
+| [x] | P0-07 | Run a clean-checkout rehearsal on another directory/machine. | Rehearsal log with OS, commands, versions and result. |
 | [x] | P0-08 | Add repository-level coding-agent instructions and a mechanical architecture/dependency check. | Fresh session can follow task ID → proof → ledger update; CI rejects forbidden imports or secret exposure. |
 
 ### P1 — Discovery, requirements and traceability (G0 prerequisite)
@@ -347,3 +347,7 @@ The authored [problem statement](problem_statement.md) records F01–F06 evidenc
 P1-03 is now checked after [architecture decision review](architecture_decision_review.md) compared the modular deployment, governed KB, six conditional roles, deterministic routing, Azure model choices and conditional graph against alternatives and current proof. PRD v1 links that reviewed decision. The live dense comparison and agent-quality experiments remain explicit revisit triggers, not claimed results.
 
 P8-07 is checked for honest measurement/reporting: `evaluation/quality_report.py` writes exact denominators, per-class intent precision, ECE/Brier, protected false-auto count, citation resolvability, local p95 and language-fluency group counts. It explicitly sets hallucination, semantic citation accuracy and availability to unknown with zero human/live observations. [Evaluation snapshot](evaluation_snapshot.md) records the 500/80 diagnostic results and limitations. Full backend suite **43 passed**; React build passed. None of the unavailable target metrics are claimed achieved.
+
+P0-07 source-checkout rehearsal passed in a local Git clone; [rehearsal log](rehearsal_log.md) records OS, tool versions, commands, 43 tests, React build and 80/80 batch reconciliation. Python dependencies were reused from an existing interpreter, so P0-04/P9-06 and A1/A12 fresh-environment proof remain open. The repository now has an initial local commit, with no remote configured; generated artifacts, runtime databases and `.env` are ignored.
+
+P0-02 is partially improved: `requirements.txt` now pins all 26 packages in the tested Python 3.14.6 dependency closure, and `pyproject.toml` separates runtime from dev requirements. A local metadata check verified every pin equals the installed version. Fresh Python 3.12 install remains unverified, so P0-02 stays open. The frontend lockfile did pass `npm ci --offline` in the clone.
