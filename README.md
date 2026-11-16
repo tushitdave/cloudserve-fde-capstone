@@ -6,7 +6,7 @@ The [architecture](docs/architecture.md) is the design target. The [build ledger
 
 ## Run locally
 
-From `CloudServe_App/`:
+Prerequisites: Python 3.12 or newer, Node.js 22 or newer with npm, and Git. No API key is needed; the default mode makes no model calls. If `python3 --version` is older than 3.12, use `python3.12` in the first command below. From the repository root:
 
 ```bash
 python3 -m venv .venv
@@ -18,7 +18,7 @@ CLOUDSERVE_PYTHON=.venv/bin/python ./scripts/dev.sh
 Open `http://localhost:5173`. Vite proxies `/api` to FastAPI on port 8001. If port 8001 is already occupied, stop the earlier Uvicorn process before starting the combined development command. A Docker Compose build is defined in `deploy/compose.yaml` for a machine with Docker Compose and network access. The API serves OpenAPI at `http://localhost:8001/docs`.
 Set `CLOUDSERVE_API_PORT=8012` on the command when port 8001 is occupied; the backend and Vite proxy will use the same alternate port.
 
-One-command checks and unattended batch run from the same directory:
+One-command checks and the unattended batch run, from the same directory. The batch command takes any input file and a new output directory, and writes `results.json`, `metrics.json` and `run_manifest.json` there:
 
 ```bash
 CLOUDSERVE_PYTHON=.venv/bin/python ./scripts/test.sh
