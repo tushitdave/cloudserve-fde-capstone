@@ -1,0 +1,502 @@
+{
+  "schema_version": "1.0",
+  "source": "data/supplied/documentation.json",
+  "document_count": 29,
+  "passage_count": 145,
+  "documents": [
+    {
+      "doc_id": "DOC-ACCT-001",
+      "title": "Managing team members, roles and permissions",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "2b7eeb6dd0e2",
+      "content_sha256": "2b7eeb6dd0e241541cf238e55cf4aa40cfeb8f955901064ec77903d8c0384658",
+      "category": "account",
+      "related_docs": [
+        "DOC-AUTH-003",
+        "DOC-SEC-001"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-ACCT-002",
+      "title": "Organisation setup and project structure",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "4df7229e1938",
+      "content_sha256": "4df7229e19385796e419ac95b84f3554073a9aa4ba90ad817963845c0466679d",
+      "category": "account",
+      "related_docs": [
+        "DOC-ACCT-001",
+        "DOC-DEPLOY-004"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-API-001",
+      "title": "Understanding API rate limits and quota tiers",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "697a5ff40aab",
+      "content_sha256": "697a5ff40aabe8c4dbc6a58871f07eea1444012f29dbc1b1e6b89ba0fe43dbbf",
+      "category": "api",
+      "related_docs": [
+        "DOC-API-002",
+        "DOC-BILL-003"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-API-002",
+      "title": "Pagination and handling large result sets",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "9478dde8558a",
+      "content_sha256": "9478dde8558a6c0225f472ff5fbb80bbcc0a36389a4cc373d22e821a663d3982",
+      "category": "api",
+      "related_docs": [
+        "DOC-API-001",
+        "DOC-DATA-001"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-API-003",
+      "title": "Webhook delivery, retries and signature verification",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "966cf5132b03",
+      "content_sha256": "966cf5132b0378d440c617c9e4c8d73570a9e1772849a13374f4c000126f2554",
+      "category": "api",
+      "related_docs": [
+        "DOC-API-001",
+        "DOC-SEC-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-AUTH-001",
+      "title": "Resolving invalid credential errors on login",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "1f41668ff81f",
+      "content_sha256": "1f41668ff81fcd7496e0758cf660e1c0667279adc1e40911b969631f95c0a0b6",
+      "category": "authentication",
+      "related_docs": [
+        "DOC-AUTH-002",
+        "DOC-AUTH-004"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-AUTH-002",
+      "title": "Multi-factor authentication setup and recovery",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "3f68ccb6240e",
+      "content_sha256": "3f68ccb6240e64b2e0d1f355c83e668d711704d58723217957cbc6e3882a60d8",
+      "category": "authentication",
+      "related_docs": [
+        "DOC-AUTH-001",
+        "DOC-SEC-001"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-AUTH-003",
+      "title": "Single sign-on configuration with SAML providers",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "e682ef4d532a",
+      "content_sha256": "e682ef4d532a0d2b19df9edeaca057a04f7313a57a332273fd58f1a5de83e6d0",
+      "category": "authentication",
+      "related_docs": [
+        "DOC-AUTH-002",
+        "DOC-ACCT-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-AUTH-004",
+      "title": "API key rotation and scope management",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "5aad0dda2439",
+      "content_sha256": "5aad0dda2439ae45bf28f416b025722e2868e8626a510f87be26a41d67ee7270",
+      "category": "authentication",
+      "related_docs": [
+        "DOC-API-001",
+        "DOC-SEC-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-BILL-001",
+      "title": "Understanding your invoice and usage breakdown",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "91570e0ea364",
+      "content_sha256": "91570e0ea3642fda5f3ab8e9e48adb7899d27947c4ee23bac8ce1a11cb6be878",
+      "category": "billing",
+      "related_docs": [
+        "DOC-BILL-002",
+        "DOC-BILL-003"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-BILL-002",
+      "title": "Changing plans, and how proration is calculated",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "dd49cb509f02",
+      "content_sha256": "dd49cb509f02c542042654f2b2b47e6a3cfd202fd3af9bf09ce9d1306514dda3",
+      "category": "billing",
+      "related_docs": [
+        "DOC-BILL-001",
+        "DOC-ACCT-001"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-BILL-003",
+      "title": "Usage limits, overage and spend controls",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "d81849b19a51",
+      "content_sha256": "d81849b19a51651d65fb2a058fe94a1d72f198345eb34e28c94011b67672fce4",
+      "category": "billing",
+      "related_docs": [
+        "DOC-API-001",
+        "DOC-BILL-001"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-DATA-001",
+      "title": "Exporting account data and scheduled extracts",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "7723dec780de",
+      "content_sha256": "7723dec780deccc3d0d703ac4af09cbdffd7a68550de16a347abf4dc14e3c2fa",
+      "category": "data",
+      "related_docs": [
+        "DOC-API-002",
+        "DOC-SEC-003"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-DATA-002",
+      "title": "Backups, retention and point-in-time restore",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "a8bdc1b80ab6",
+      "content_sha256": "a8bdc1b80ab6fac76dbfdea1337fa44d148c3f8d1cda83d476ee18a7dbb78c2c",
+      "category": "data",
+      "related_docs": [
+        "DOC-DEPLOY-002",
+        "DOC-PERF-003"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-DATA-003",
+      "title": "Data residency and regional storage",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "4191397fcaef",
+      "content_sha256": "4191397fcaef14f0afd0f0ad93e07c28d9e71fd15047dd655643bb203041307a",
+      "category": "data",
+      "related_docs": [
+        "DOC-SEC-003",
+        "DOC-DATA-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-DEPLOY-001",
+      "title": "Container deployments failing during the health check phase",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "8803954669e7",
+      "content_sha256": "8803954669e77b39d2102c153e6136b24b148acc97aad31df49fc1637d2f0ea5",
+      "category": "deployment",
+      "related_docs": [
+        "DOC-DEPLOY-002",
+        "DOC-DEPLOY-004"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-DEPLOY-002",
+      "title": "Rolling back a failed release",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "5fe22bc65f84",
+      "content_sha256": "5fe22bc65f842d3ff66171447298973b774cee9ab84b6f1ad7b93edae7f31d8c",
+      "category": "deployment",
+      "related_docs": [
+        "DOC-DEPLOY-001",
+        "DOC-DATA-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-DEPLOY-003",
+      "title": "Build failures caused by dependency resolution",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "7403b724b7b2",
+      "content_sha256": "7403b724b7b2c2fe0786dfc491f444322b4b274344f781f84d93f334ea581487",
+      "category": "deployment",
+      "related_docs": [
+        "DOC-DEPLOY-001",
+        "DOC-PERF-003"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-DEPLOY-004",
+      "title": "Configuring environment variables and secrets",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "9789e12635d2",
+      "content_sha256": "9789e12635d2cb8aba531cdb6816e5a0da5774f8a970afd6f09b0a2ff022f39b",
+      "category": "deployment",
+      "related_docs": [
+        "DOC-DEPLOY-001",
+        "DOC-SEC-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-INT-001",
+      "title": "Connecting continuous integration pipelines",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "76bbb5515df0",
+      "content_sha256": "76bbb5515df02adcd6445c50f7b258c4270bc35655f1752ca4fbde23a8476f4f",
+      "category": "integration",
+      "related_docs": [
+        "DOC-AUTH-004",
+        "DOC-SEC-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-INT-002",
+      "title": "Third party monitoring and log forwarding",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "a0ec300e67d0",
+      "content_sha256": "a0ec300e67d07625d98f9aaacbd7255427e5d0abb02194fd8edbc7285094296d",
+      "category": "integration",
+      "related_docs": [
+        "DOC-PERF-001",
+        "DOC-SEC-003"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-ONB-001",
+      "title": "First deployment: a walkthrough",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "9a29d130e136",
+      "content_sha256": "9a29d130e136b90d3f276439ae8c0b8c1ec7136a6e0d06f7fdd9af9b83ffb7f5",
+      "category": "onboarding",
+      "related_docs": [
+        "DOC-DEPLOY-001",
+        "DOC-ACCT-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-ONB-002",
+      "title": "Migrating an existing application to CloudServe",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "da7894e96187",
+      "content_sha256": "da7894e961871d50c1c9380616e6aa5a11bb9ac0bb3150236c186234b8122d17",
+      "category": "onboarding",
+      "related_docs": [
+        "DOC-ONB-001",
+        "DOC-DATA-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-PERF-001",
+      "title": "Diagnosing elevated response latency",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "a98309888a24",
+      "content_sha256": "a98309888a242063cd5702600ab5b440fc9862a9f096531189f1a75b02cd4c7b",
+      "category": "performance",
+      "related_docs": [
+        "DOC-PERF-002",
+        "DOC-DEPLOY-001"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-PERF-002",
+      "title": "Autoscaling behaviour and instance limits",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "69a73e6284a6",
+      "content_sha256": "69a73e6284a6e55670bd7f5ac88f936b8b5565d32d412ab3a48b0742558f265f",
+      "category": "performance",
+      "related_docs": [
+        "DOC-PERF-001",
+        "DOC-BILL-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-PERF-003",
+      "title": "Database connection pool exhaustion",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "739f203ce10d",
+      "content_sha256": "739f203ce10dca1990d492286b48ec67c55d00ed8de9b0c7251eb23a2668a466",
+      "category": "performance",
+      "related_docs": [
+        "DOC-PERF-001",
+        "DOC-DATA-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-SEC-001",
+      "title": "Responding to a suspected account compromise",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "50fa532aa23b",
+      "content_sha256": "50fa532aa23b932d2aa7250a85eb6d758f9a997bd4a063301b133d4081453a67",
+      "category": "security",
+      "related_docs": [
+        "DOC-AUTH-004",
+        "DOC-SEC-002"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-SEC-002",
+      "title": "Handling exposed secrets and credential rotation",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "3311d2da9326",
+      "content_sha256": "3311d2da93269b721f21365b3912199feb6232ae62d3da86e10084e4752e75be",
+      "category": "security",
+      "related_docs": [
+        "DOC-AUTH-004",
+        "DOC-SEC-001"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    },
+    {
+      "doc_id": "DOC-SEC-003",
+      "title": "Audit logging and compliance evidence",
+      "owner": "supplied_capstone_pack",
+      "authority": "approved_supplied_article",
+      "source_version": "ab0a4cc5ba55",
+      "content_sha256": "ab0a4cc5ba55b17a33f734578fd130a77c3b83cec06c226de185a36cfa1352ac",
+      "category": "security",
+      "related_docs": [
+        "DOC-DATA-003",
+        "DOC-SEC-001"
+      ],
+      "permissions": [
+        "customer_support"
+      ],
+      "passage_count": 5
+    }
+  ],
+  "excluded_authority": "data/supplied/ground_truth_responses.json"
+}

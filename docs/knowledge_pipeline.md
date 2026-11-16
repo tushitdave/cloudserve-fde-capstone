@@ -2,7 +2,7 @@
 
 ## Flow
 
-1. The 29 supplied articles are the approved baseline. Each has a stable document ID, content hash, owner label (`supplied_capstone_pack`) and section passages with exact source offsets.
+1. The 29 supplied articles are the approved baseline. `data/manifests/source_manifest_v1.json` freezes their IDs, hashes, owner and authority. Canonical documents retain the original text, 145 section spans and 116 numbered-step spans with exact offsets.
 2. The Knowledge page stages a revision of an existing document ID. Source Intake checks the JSON shape; Knowledge Steward records warnings and quarantine reasons. Unknown IDs, absent resolution sections, unsafe instructions, possible secrets and out-of-bounds text are quarantined.
 3. A pending candidate needs a named human review with notes. Rejection keeps the active index unchanged. Publication requires an approved job and checks that its base version is still active. SQLite commits the active version and revision atomically.
 4. Retrieval reads the current approved snapshot. The previous source remains addressable by document ID, passage ID and source version. A ticket citation links to that exact version. If the source changes before answer release, the release gate blocks the stale citation.

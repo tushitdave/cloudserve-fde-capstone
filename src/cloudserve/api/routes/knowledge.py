@@ -21,6 +21,7 @@ class DocumentIn(BaseModel):
     category: str = ""
     applies_to: str = ""
     related_docs: list[str] = []
+    source_format: str = "json"
 
 
 class ReviewIn(BaseModel):

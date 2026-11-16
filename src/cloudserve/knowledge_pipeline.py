@@ -28,9 +28,13 @@ class KnowledgeService:
                "category": str(raw.get("category") or (current or {}).get("category") or "").strip(),
                "applies_to": str(raw.get("applies_to") or (current or {}).get("applies_to") or "").strip(),
                "related_docs": raw.get("related_docs") if isinstance(raw.get("related_docs"), list) else (current or {}).get("related_docs", []),
+               "permissions": (current or {}).get("permissions", ["customer_support"]),
                "base_hash": _content_hash(current) if current else None}
-        intake = self.intake.assess(doc)
-        steward = self.steward.review(doc, current)
+        source_format = str(raw.get("source_format") or "json").strip().lower()
+        complete = all(doc[key] for key in ("doc_id", "title", "content", "owner"))
+        intake = ({"action": "use_approved_json_parser", "reason": "Known support-article JSON format", "agent_invoked": False}
+                  if source_format == "json" and complete else self.intake.assess({**doc, "source_format": source_format}))
+        steward = self.steward.review(doc, current, list(active.values()))
         reasons = []
         if intake["action"] == "quarantine":
             reasons.append("incomplete_source_format")
@@ -44,6 +48,8 @@ class KnowledgeService:
             reasons.append("possible_secret_in_source")
         if PROMPT_INJECTION.search(doc["content"]):
             reasons.append("instruction_like_source_text")
+        if raw.get("permissions") is not None and raw["permissions"] != doc["permissions"]:
+            reasons.append("permission_change_requires_authorization")
         if current and _content_hash(current) == _content_hash(doc) and current["title"] != doc["title"]:
             reasons.append("metadata_change_requires_content_version")
         steward["quarantine_reasons"] = reasons

@@ -23,6 +23,7 @@ def test_approved_publication_changes_active_index_and_preserves_old_citation(tm
     staged = service.stage(candidate())
     assert staged["status"] == "pending_review"
     assert staged["intake"]["action"] == "use_approved_json_parser"
+    assert staged["intake"]["agent_invoked"] is False
     assert staged["steward"]["requires_human_review"]
     with pytest.raises(KnowledgeConflict):
         service.publish(staged["job_id"], "Publisher")
@@ -85,3 +86,50 @@ def test_unsafe_source_text_is_quarantined(tmp_path, monkeypatch):
         assert expected in staged["steward"]["quarantine_reasons"]
         with pytest.raises(KnowledgeConflict):
             service.publish(staged["job_id"], "Publisher")
+
+
+def test_uncertain_format_invokes_intake_and_quarantines(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLOUDSERVE_RUNTIME_DIR", str(tmp_path))
+    service = KnowledgeService()
+    unsupported = service.stage({**candidate(), "source_format": "pdf"})
+    assert unsupported["status"] == "quarantined"
+    assert unsupported["intake"]["agent_invoked"] is True
+    assert unsupported["intake"]["action"] == "quarantine"
+    incomplete = service.stage({**candidate("Different incomplete revision"), "owner": ""})
+    assert incomplete["status"] == "quarantined" and incomplete["intake"]["agent_invoked"] is True
+
+
+def test_job_checkpoint_resume_and_atomic_visibility(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLOUDSERVE_RUNTIME_DIR", str(tmp_path))
+    original = resolve("DOC-API-002#p04")
+    initial_revision = manifest()["snapshot_revision"]
+    first = KnowledgeService()
+    staged = first.stage(candidate("Restart-safe approved source update."))
+    assert first.stage(candidate("Restart-safe approved source update."))["job_id"] == staged["job_id"]
+    first.review(staged["job_id"], "Reviewer", "Checked source provenance and all resolution steps.", True)
+    assert resolve(original.passage_id).source_version == original.source_version
+    assert manifest()["snapshot_revision"] == initial_revision
+    restarted = KnowledgeService()
+    resumed = restarted.stage(candidate("Restart-safe approved source update."))
+    assert resumed["job_id"] == staged["job_id"] and resumed["status"] == "approved"
+    restarted.publish(resumed["job_id"], "Publisher")
+    assert manifest()["snapshot_revision"] == initial_revision + 1
+    assert resolve(original.passage_id).source_version != original.source_version
+    assert resolve(original.passage_id, original.source_version).text == original.text
+
+
+def test_steward_flags_duplicate_conflict_and_candidate_links(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLOUDSERVE_RUNTIME_DIR", str(tmp_path))
+    service = KnowledgeService()
+    docs = json.loads(supplied("documentation.json").read_text())
+    other = next(doc for doc in docs if doc["doc_id"] == "DOC-AUTH-001")
+    duplicated = service.stage({**candidate(), "content": other["content"]})
+    assert duplicated["status"] == "pending_review"
+    assert f"duplicate_content:{other['doc_id']}" in duplicated["steward"]["warnings"]
+    assert any(span["reason"] == f"duplicate_content:{other['doc_id']}" for span in duplicated["steward"]["review_spans"])
+    conflict = service.stage({**candidate("Different content with another article title."), "title": other["title"]})
+    assert f"conflicting_title:{other['doc_id']}" in conflict["steward"]["warnings"]
+    assert conflict["steward"]["candidate_taxonomy_links"]
+    no_steps = service.stage({**candidate("A separate article without numbered instructions."),
+                              "content": candidate()["content"].replace("1. ", "Step one: ")})
+    assert "missing_resolution_steps" in no_steps["steward"]["warnings"]

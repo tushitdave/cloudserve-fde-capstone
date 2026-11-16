@@ -31,7 +31,8 @@ class KnowledgeStore:
             return int(db.execute("SELECT value FROM meta WHERE key='revision'").fetchone()[0])
 
     def active_documents(self) -> list[dict]:
-        docs = {doc["doc_id"]: {**doc, "owner": "supplied_capstone_pack"} for doc in json.loads(supplied("documentation.json").read_text())}
+        docs = {doc["doc_id"]: {**doc, "owner": "supplied_capstone_pack", "permissions": ["customer_support"]}
+                for doc in json.loads(supplied("documentation.json").read_text())}
         with self._connect() as db:
             rows = db.execute("SELECT doc_id,doc_json FROM active_overrides").fetchall()
         docs.update({doc_id: json.loads(value) for doc_id, value in rows})
