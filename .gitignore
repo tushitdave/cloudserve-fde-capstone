@@ -16,3 +16,4 @@ data/runtime/
 evaluation/reports/
 .uv_cache/
 .DS_Store
+build/

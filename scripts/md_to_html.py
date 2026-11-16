@@ -20,8 +20,9 @@ h3 { font-size: 12.5pt; margin: 14pt 0 4pt; } h4 { font-size: 11pt; margin: 10pt
 table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; font-size: 9pt; page-break-inside: auto; }
 th, td { border: 1px solid #999; padding: 3pt 5pt; vertical-align: top; text-align: left; }
 th { background: #eee; } tr { page-break-inside: avoid; }
-code { font-family: Menlo, Consolas, monospace; font-size: 8.5pt; background: #f3f3f3; padding: 0 2pt; }
-pre { background: #f3f3f3; padding: 6pt; font-size: 8.5pt; white-space: pre-wrap; }
+code { font-family: Menlo, Consolas, monospace; font-size: 8.5pt; background: #f3f3f3; padding: 0 2pt; overflow-wrap: anywhere; }
+a { overflow-wrap: anywhere; }
+pre { background: #f3f3f3; padding: 6pt; font-size: 7.5pt; white-space: pre-wrap; overflow-wrap: anywhere; }
 blockquote { margin: 6pt 0 6pt 12pt; padding-left: 8pt; border-left: 3px solid #aaa; color: #333; }
 .caption { font-size: 9pt; font-style: italic; margin-top: -4pt; }
 .pagebreak { page-break-after: always; }

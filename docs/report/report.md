@@ -1,0 +1,512 @@
+# CloudServe Support Intelligence — Capstone Report
+
+**Forward Deployed AI Engineering capstone** · Tushit Dave · November 2026
+
+Repository: https://github.com/tushitdave/cloudserve-fde-capstone (tag of record: the commit included in `04_Source_Code`)
+
+<!-- pagebreak -->
+
+## 1. Executive summary
+
+CloudServe asked for a chatbot. Discovery showed that the support team is not short of answers but short of time to find them. 71% of development tickets are answerable from 29 approved articles that agents do not search. Half of the tickets escalated to tier two could have been answered from those same articles. When a ticket does need an expert, it arrives as a bare forward. The outcome CloudServe needs is therefore not a conversational front end. It needs routine documented questions answered at once, with the source shown, and everything sensitive or uncertain handed to the right person with the context already attached.
+
+I built a single FastAPI application with a React workspace and an unattended batch harness. Every ticket is classified for intent and urgency with calibrated confidence. A versioned rule table always escalates security, compliance, billing-dispute, account-compromise and roadmap requests. Answers are assembled only from approved article text, with a passage citation on every line, and a deterministic verifier checks each line before release. Every ticket ends as `sent` or `escalated` with a decision record in the Governance Framework's format. A kill switch stops automatic answers from the next ticket onwards, with no deployment.
+
+On the 500 development tickets the final system answers 72.8% automatically (escalation 27.2% against a 58% baseline and a 30% target) and sends no protected ticket. On the 80 visible validation tickets it answers 68.8% (escalation 31.3%), again with no protected ticket sent. 98% of answers cite an article the labels expect. The full run is unattended, reconciles every input to a terminal decision, and writes its metrics report itself.
+
+The single most important caveat: **these are offline figures on synthetic, templated data, and no human has yet reviewed answer quality.** The labels disagree with themselves on identical text, so 90 development answers went to tickets labelled "escalate" for reasons the text does not reveal. Non-fluent customers fare 7 points worse than fluent ones. Hallucination rate and real customer outcomes are unmeasured. The system is ready for a supervised pilot, not for unsupervised deployment.
+
+## 2. The problem
+
+### 2.1 What was asked for
+
+CloudServe sells cloud infrastructure to just over two hundred business customers and receives more than 500 support tickets a week across email, live chat, documentation comments and a community forum. Their head of support, Marcus Adeyemi, brought five numbers to the first meeting, reproduced in Table 1. He asked for a chatbot that "answers the easy ones so my people can do the hard ones".
+
+| Measure | Now | Needed |
+|---|---|---|
+| Time to first reply | 8–12 hours | Under 2 hours (agreement); brief target under 5 minutes |
+| First-contact resolution | 42% | 60–65% |
+| Escalation rate | 58% | 30% or lower |
+| Customer satisfaction | 3.2 / 5 | 4.0 or better |
+| Team attrition | Rising | Stable |
+
+*Table 1. CloudServe's baseline and targets (Project Brief).*
+
+### 2.2 What discovery revealed
+
+A chatbot is a delivery mechanism. It says nothing about where an answer comes from, whether it is right, or what happens when it is not. The interviews and the ticket data described something different from a missing front end:
+
+- **The answers already exist.** 357 of 500 development tickets (71.4%) are labelled answerable from the 29 support articles. The technical writer, Ines, says those articles are reviewed and accurate. Tier-one agent Sofia says "the documentation is fine. I cannot find things in it."
+- **Escalation is mostly avoidable.** Tier-two engineer Daniel estimated that half of what reaches him could have been resolved earlier. The data agrees: 138 of the 281 historically escalated tickets (49.1%) were answerable from the articles.
+- **Escalations arrive without context.** Daniel reads the whole thread and often re-asks the customer something already asked. That, more than waiting, is where frustration comes from.
+- **A wrong answer is worse than none.** Marcus: "I would rather it said nothing than said something wrong." The customer, Ravi, will accept an automated answer if it is honest about being automated and shows where it came from.
+
+### 2.3 The gap
+
+CloudServe asked for a way to put answers in front of customers. What they lack is a reliable path from an approved answer to the person who needs it, together with a disciplined way of not answering when the system cannot stand behind it. The design problem is therefore as much about **when not to answer** as about answering, and about making each "no" useful to the human who receives it. A system that escalates everything is safe and useless. A system that answers everything is useful and dangerous. The value lies in a defensible line between the two, drawn from evidence and recorded for every ticket.
+
+## 3. Discovery findings
+
+The full evidence tables are in the Stage 1 workbook (Appendix A). This section presents the findings that changed the design.
+
+### 3.1 Four disagreements, settled by the data
+
+The transcripts contain points on which stakeholders disagree or are simply wrong about their own operation. Table 2 records how the ticket data settled each.
+
+| # | Disagreement | Data | Consequence for design |
+|---|---|---|---|
+| D1 | Is the documentation bad, or just unfindable? (Ines heard Sofia say "bad") | 71.4% of tickets answerable from existing articles | Build retrieval over approved articles; do not write new content first |
+| D2 | Is the 58% escalation rate the cost of complexity? (Marcus vs Daniel) | 49.1% of escalated tickets were answerable from docs | Automating documented answers attacks escalation directly |
+| D3 | Do non-fluent customers get the worst satisfaction? (Sofia: yes) | Historical CSAT 3.04 non-fluent vs 2.95 fluent | Not true historically, but retrieval is where a new system would fail them, so it must be measured |
+| D4 | Do enterprise customers get faster answers? (Ravi: in an hour) | Enterprise median resolution 369 min vs 141 business; enterprise FCR lowest at 37.3% | Perception is wrong; automation must not widen the tier gap |
+
+*Table 2. Stakeholder disagreements and how the data resolved them.*
+
+### 3.2 What the data shows that nobody said
+
+The 500 development tickets contain only 216 distinct bodies. The queue is heavily repetitive, which supports Sofia's "same ones over and over" and makes automation attractive. The most frequent single question (14 copies) is a rollback procedure that exists word for word in article DOC-DEPLOY-002.
+
+Effort is not distributed like volume (Table 3). The protected categories, security incidents, compliance and feature requests, are 14% of volume but about 25% of historical resolution time, and they must stay human. The automation opportunity is the long tail of documented procedures such as SSO configuration, rate limits and onboarding. Each escalation there consumes a senior engineer's time for an answer that exists.
+
+| Category | Share of volume | Share of resolution time | Mean minutes |
+|---|---:|---:|---:|
+| Security incident | 5.2% | 9.7% | 786 |
+| Compliance request | 5.2% | 8.4% | 679 |
+| Feature request | 4.0% | 6.9% | 724 |
+| Data residency | 5.8% | 7.1% | 515 |
+| SSO configuration | 5.2% | 2.4% | 191 |
+| Rate limit | 2.6% | 0.8% | 122 |
+
+*Table 3. Volume versus effort by category (development set; resolution time is elapsed time, an upper-bound proxy for effort).*
+
+### 3.3 Findings that emerged during the build
+
+Three further findings came from building and running the system. They are reported here because they changed the requirements (section 9).
+
+- **F07 — the routing labels conflict with themselves.** Among non-protected tickets, 40 of 191 groups of identical text carry both `auto_respond` and `escalate` labels. A classifier trained to predict the supplied "answerable from docs" label scored ROC AUC 0.32 on held-out development data and 0.55 on validation, no better than chance.
+- **F08 — the validation set mostly repeats the development set.** 62 of 80 validation ticket bodies appear verbatim in development. Validation figures therefore overstate performance on genuinely new wording.
+- **F09 — urgency is barely learnable from text.** A held-out urgency accuracy of 50% reflects identical texts with different urgency labels.
+
+### 3.4 The problem statement
+
+> CloudServe's support team is not short of answers; it is short of time to find them. Seven in ten tickets ask something an approved article already explains, yet customers wait most of a working day, and about half of what reaches senior engineers could have been answered from those same articles. When a ticket does need an expert it arrives as a bare forward, so the expert starts from scratch. The team needs routine documented questions answered straight away from the approved articles, in a way that shows where the answer came from, and everything sensitive, unusual or uncertain passed to the right person with a short summary of what is known and what is not. Security, compliance and money questions must always go to a person.
+
+## 4. Requirements
+
+Each requirement traces to a discovery row. The full PRD is the Stage 2 workbook and `docs/PRD_v1.md`; the version 2 changes are in section 9. Table 4 lists the functional requirements as they stand after revision.
+
+| ID | Requirement (v2) | Evidence | Acceptance test |
+|---|---|---|---|
+| FR-01 | Normalise four channels, preserving channel and original text; malformed or empty input escalates | Brief; D1 | `test_four_channel_normalization_preserves_original_text` |
+| FR-02 | Exactly one terminal state per ticket with a persistent decision record | Marcus: explainability | Run manifest reconciliation; `test_unattended_full_set_reconciles` |
+| FR-03 | Intent and urgency with calibrated confidence and alternatives, trained without leakage | Sofia step 2 | Held-out ECE ≤0.05 test |
+| FR-04 | Security, compliance, feature, unclear, billing-dispute, account-compromise and data-location-assurance requests always escalate | Daniel, Ines; 87 must-not tickets | `test_interview_derived_rules_escalate`; protected false-auto = 0 |
+| FR-05 | Retrieve only approved passages with resolvable IDs and scores | D1, Ines | `test_retrieval_candidates.py` |
+| FR-06 | Escalate when no approved article covers the intent, evidence is weak, or the request is novel; never invent a citation | Marcus; Ines | `test_no_evidence_abstains`, out-of-scope fixtures |
+| FR-07 | Answer only from approved text, with each line cited and verified; block on unsupported claims, private data, commitments or instruction override | Marcus, Daniel | `test_unsafe_draft_is_blocked`, `test_engineered_ticket_trips_instruction_integrity_guardrail` |
+| FR-08 | Every escalation carries summary, reason, known/unknown facts, candidate sources and next step | Daniel | `test_escalation_packet_explains_uncertainty` |
+| FR-09 | Knowledge changes only through staging, review, human certification and atomic publication | Daniel (stale snippets), Ines | `test_knowledge_pipeline.py` |
+| FR-10 | Reviewer UI shows scores, exact citations and versions, reasons, handoffs and lineage | Ines (which article) | React build; demo |
+| FR-11 | Any compatible JSON file processed unattended from one command | Build Spec A9 | `test_unseen_file_order_count_and_provider_disabled_reconcile` |
+| FR-12 | Same run emits business, technical, governance and fairness metrics | Build Spec A10 | `metrics.json` |
+| FR-13 | Requests unlike any learnt ticket escalate (novelty) | Ines: novel incidents | `test_out_of_scope_fixtures_never_auto_answer` |
+
+*Table 4. Functional requirements (version 2), evidence and acceptance tests.*
+
+The non-functional requirements are the brief's targets: p95 latency under 3 seconds, availability of 99.5% with graceful degradation, intent precision of at least 85%, hallucination of at most 5%, citation accuracy of at least 95%, zero private data, under 5 points of group variation, complete decision logging and calibration within 5 points. Two additions came out of the revision: a kill switch (NFR-08), and zero cost in the default path (NFR-07, satisfied by making the model provider optional). The traceability matrix from each acceptance criterion A1–A12 to its owner, files and test is `docs/traceability.md` (Appendix C).
+
+<!-- pagebreak -->
+## 5. Architecture and design
+
+### 5.1 The system at a glance
+
+The system is one deployable application with two logical pipelines. The **knowledge pipeline** runs when approved content changes. The **ticket pipeline** runs on every ticket. Figure 1 shows the ticket path as implemented. Every box marked DET is deterministic code; no model can change its outcome.
+
+```
+ Ticket (email | chat | docs comment | forum)
+   │
+   ▼
+ DET  Normalise ─ invalid channel / empty ──────────────────────────────────────┐
+   │                                                                             │
+   ▼                                                                             │
+ ML   Classify intent + urgency (calibrated) + similarity to known tickets       │
+   │                                                                             │
+   ▼                                                                             │
+ DET  Kill switch on? ─────────────────────────────────────────────────────────►│
+ DET  Protective rules R-01..R-07 fired? (security, compliance, billing …) ────►│
+ DET  Instruction-override text in ticket? (guardrail) ────────────────────────►│
+ DET  Novel request (similarity < 0.35)? ───────────────────────────────────────►│
+ AGT  Triage (intent confidence < 0.90): record options ────────────────────────►│
+   │                                                                             │
+   ▼                                                                             │
+ AGT  Evidence: approved articles for this intent → passage search (≤ 2 tries)   │
+ DET  No approved article / evidence below threshold ──────────────────────────►│
+   │                                                                             │
+   ▼                                                                             │
+ AGT  Answer: full procedure + causes + notes, every line cited                  │
+ AGT  Verify: every cited line is an exact span of its passage                   │
+ DET  Guardrails: grounding, private data, tone/scope, claim support ──fail────►│
+ DET  Kill switch re-checked before release ───────────────────────────────────►│
+   │                                                                             ▼
+   ▼                                                              ESCALATED + handoff packet
+ SENT + citations                                                (reason, known, unknown, sources,
+   │                                                              next step) → human review queue
+   └──────────── decision record + terminal event (every path) ◄──────────────────┘
+```
+
+*Figure 1. The ticket pipeline as implemented. DET = deterministic code, ML = trained model, AGT = bounded agent role.*
+
+### 5.2 Why this shape and not a chatbot
+
+The brief's reference architecture has six components: ingest, classify, retrieve, route, generate and validate. I kept them and made three choices that follow from discovery.
+
+**First, release is owned by code, not by a model.** Marcus's failure condition is a confidently wrong public answer, and the Governance Framework's test is whether a harm is stopped by "a control you built" rather than "a property of the model". So the decision to send is a deterministic function of the rule table, thresholds, verification result and guardrails. Agents propose and code disposes.
+
+**Second, the default answer path uses no language model.** The answer is built from the approved article itself: the complete numbered procedure, the common causes and the notes, each line followed by its passage ID. A verifier then checks every line is a verbatim span of the passage it cites. This makes hallucination structurally impossible in the default path. It satisfies Ravi's request for honesty and Ines's request to know which article an answer came from. It also keeps the unattended gate free of provider outages, rate limits and cost. The trade-off is that answers are not tailored to the specific ticket; section 7 discusses what this costs. An Azure GPT-4o drafting and verification path exists as an opt-in mode behind the same verifier and guardrails.
+
+**Third, escalation is a product, not a failure branch.** Daniel said he does not need the system to be right; he needs it to "show its working". Every escalation therefore carries a structured handoff packet: why it escalated, what is known, what is not known (for example, the competing intent interpretations when confidence was low), the candidate passages, and a next step specific to the reason.
+
+### 5.3 Six bounded agent roles
+
+The design defines six roles across the two pipelines (Table 5). In the implementation each role is a small class with a single responsibility, a typed output and no ability to publish knowledge or send a reply. Because the default path is deterministic, "agent" here means a bounded decision-making component with an explicit contract. It does not mean an LLM call per role. Running six model calls per ticket would have put the 3-second latency target and the zero-cost constraint at risk without a measured quality gain.
+
+| Role | Pipeline | Trigger | Output | Cannot |
+|---|---|---|---|---|
+| Source Intake | Knowledge | Unknown or incomplete source format | Parser recommendation or quarantine | Fetch URLs, approve, publish |
+| Knowledge Steward | Knowledge | Every staged revision | Missing-section, duplicate, conflict warnings; review spans | Certify or publish |
+| Triage | Ticket | Intent confidence below threshold | Ranked intent options for the handoff | Override rules, lower thresholds, send |
+| Evidence | Ticket | Eligible ticket | `QueryPlan` and `EvidenceBundle` (≤2 searches) | Search outside approved scope |
+| Answer | Ticket | Evidence sufficient | Cited draft | Add sources, set release state |
+| Verification | Ticket | Every draft | Per-line supported/unsupported verdict | Release |
+
+*Table 5. Agent roles, triggers and hard boundaries.*
+
+### 5.4 Alternatives considered
+
+| Decision | Alternatives | Choice and reason |
+|---|---|---|
+| Deployment shape | Microservices; one modular app | One FastAPI app: the clean-checkout gate rewards simplicity, and no independent scaling need exists |
+| Orchestration | LangGraph (brief's suggestion); custom state machine | Plain Python use case shared by API and harness. The flow is a short fixed sequence with early exits, and a framework added dependency risk to the gate without adding control |
+| Retrieval | Chroma + MiniLM dense (brief); lexical; hybrid | Lexical TF-IDF over section-aware passages as the release baseline. Azure ada-002 dense/hybrid ranking is implemented but not yet measured (blocked by network in the build environment) |
+| Answer generation | LLM drafting; extractive template | Extractive by default (zero hallucination by construction, zero cost); GPT-4o opt-in |
+| Model provider | OpenRouter/Groq free tier (brief); Azure OpenAI | Azure deployments were available to me. Because the default path makes no model call, the hidden-set run costs nothing and does not depend on any provider |
+| Knowledge structure | Vector store as source of truth; governed store + index; graph | Governed versioned store (SQLite + source manifest) with indexes built from it. No graph: 29 articles and no multi-hop questions |
+| Routing thresholds | Hand-set; learned from labels; risk–coverage selection | Risk–coverage selection on a held-out split under explicit safety constraints (section 6.3) |
+
+*Table 6. Main design alternatives and the reasons for each choice.*
+
+### 5.5 Layers
+
+The code follows the brief's three-layer split. Interface: FastAPI routes, the React workspace and the batch CLI. Processing: normalisation, classifier, policy engine, agents and guardrails. Persistence: the ticket and decision log, the knowledge store and versioned manifests. A mechanical check (`scripts/architecture_check.py`, run in CI) forbids production modules from importing API routes or the evaluation harness, forbids contracts from depending on adapters, and scans for committed credentials.
+
+## 6. Implementation
+
+### 6.1 How it was built
+
+The repository follows the prescribed layout: `src/`, `prompts/`, `tests/`, `evaluation/`, `docs/`, `data/` and `.github/workflows/`. Python 3.12+ with FastAPI, scikit-learn and Pydantic; React 19 with Vite for the workspace; SQLite for persistence. Dependencies are pinned. A fresh install of the pins, the architecture check, 65 tests and the React production build pass on a hosted GitHub Actions runner (run 43889620478).
+
+Three commands cover the assessment procedure:
+
+```
+./scripts/dev.sh                                  # API on :8001 + React on :5173
+./scripts/test.sh                                 # architecture check, 65 tests, UI build
+./scripts/batch.sh <input.json> <output-dir>      # unattended run + metrics + manifest
+```
+
+### 6.2 Components
+
+**Ingest.** Any JSON row becomes a typed `Ticket`. An unrecognised channel or an empty subject and body produces a logged escalation, not an exception. Non-dict rows and missing IDs get generated IDs so that nothing is skipped. Original text, channel and an input hash are stored in the first event.
+
+**Classify.** TF-IDF unigram/bigram features with class-balanced logistic regression, one model per head. The training data is the 397-ticket train side of a frozen split built by grouping near-duplicate tickets (cosine ≥ 0.90), so no near-copy of a calibration ticket is trained on. Each head is then **temperature-scaled** on the 103 held-out calibration tickets, minimising negative log-likelihood (Guo et al., 2017). Customer name, tier, region and history are never features.
+
+**Retrieve.** Articles are split at their `##` sections, so each numbered procedure stays whole in one passage. Every passage carries a stable ID (`DOC-DEPLOY-002#p04`), the source version hash and exact character offsets into the original article. The Evidence role restricts the search to the articles approved for the predicted intent. If a document model agrees confidently, it narrows the search to that one article. It retries once with the intent name added to the query, and it keeps only Resolution passages as primary evidence.
+
+**Route.** `policy_v2.json` holds eight rules: the kill switch plus seven protective rules, each with a priority, owner, effective date, the interview evidence behind it and the requirement it serves. Rules are evaluated before any drafting. Thresholds are read from the same file and were produced by the selection script.
+
+**Generate and validate.** The extractive answer and line-level verifier are described in 5.2. The deterministic guardrails then run on every answer and record pass or fail: grounding, private data (email, keys, card and phone patterns, customer ID and the customer's own name), tone and scope (refund, credit, fix or timeline commitments) and claim support. An instruction-integrity guardrail runs on the ticket before drafting.
+
+**Log.** Each ticket writes a sequence of events (normalised, classified, triage, evidence, drafted, verified, routed, decision, terminal) and a final result. The `decision` event follows the Governance Framework's minimum record, including prompt version and requirement IDs. The harness writes `results.json`, `metrics.json` and a `run_manifest.json`. The manifest holds the input hash, all component versions, the thresholds, the kill-switch state and the exact lists of input, terminal and decision IDs. The run fails loudly if they do not match.
+
+**Knowledge governance.** A changed article is staged, checked by Source Intake and Knowledge Steward, and quarantined if it contains secrets, instruction-like text, unknown IDs or permission changes. It must then be certified by a named reviewer and published atomically. Old citations remain resolvable by source version.
+
+### 6.3 Choosing thresholds from data
+
+The brief warns against "a threshold chosen because it looked reasonable". `evaluation/threshold_selection.py` replays the routing decision for every calibration-split ticket over a grid of 1,680 combinations of four thresholds: intent confidence, similarity to known tickets, document-model confidence and evidence score. It keeps only configurations meeting three hard constraints:
+
+- zero protected tickets answered;
+- zero answers to a 12-ticket hand-written out-of-scope fixture (weather, pizza, poems, a cat eating a keyboard);
+- answers citing an unexpected article at most 5% of the time.
+
+Among those it chooses the highest automatic coverage, breaking ties toward stricter values. Table 7 shows the risk–coverage trade-off along the evidence threshold at the chosen values of the other three.
+
+| Evidence threshold | Coverage | Wrong-article rate | Safe-auto recall |
+|---:|---:|---:|---:|
+| 0.06 (chosen) | 79.6% | 2.4% | 90.1% |
+| 0.10 | 67.0% | 1.5% | 78.9% |
+| 0.14 | 57.3% | 1.7% | 66.2% |
+| 0.18 | 36.9% | 0.0% | 42.3% |
+
+*Table 7. Risk–coverage along the evidence threshold on the calibration split (protected and out-of-scope answers are zero in every row shown).*
+
+The chosen values are intent ≥ 0.90, similarity ≥ 0.35, document ≥ 0.30 and evidence ≥ 0.06. The evidence threshold sits at the retrieval floor. On this data a stricter evidence gate cost coverage without reducing wrong articles in any consistent way, because the intent and document scoping already do most of the work. I accepted that trade-off knowingly. The novelty and out-of-scope constraints are what protect against genuinely unfamiliar text.
+
+### 6.4 What the system produces
+
+Figure 2 is the complete customer message the system released for development ticket DEV-0026 (chat, no subject): *"When I page through results I am seeing some records twice and missing others entirely. The collection does change while I iterate. Am I doing this the wrong way?"*
+
+```
+Thanks for contacting CloudServe support. This reply was prepared automatically from our approved
+guide "Pagination and handling large result sets"; a member of the team can review it if it does
+not resolve the problem.
+
+Common causes:
+- The cursor from the previous response was not passed to the next request [DOC-API-002#p03]
+- Offset pagination was used against a changing collection [DOC-API-002#p03]
+- The page size requested exceeds the maximum [DOC-API-002#p03]
+
+What to do:
+1. Use cursor pagination for anything that may change while you iterate. Offset pagination will
+   skip or repeat records when items are inserted mid-iteration. [DOC-API-002#p04]
+2. Pass the next_cursor value from each response as the cursor parameter of the following
+   request, and stop when it is null. [DOC-API-002#p04]
+3. Keep page size at or below two hundred. Larger requests are rejected rather than truncated.
+   [DOC-API-002#p04]
+4. For very large extracts, use the export endpoint, which runs asynchronously and returns a
+   download link. [DOC-API-002#p04]
+
+Note: Cursors expire after one hour. Long-running iterations should handle expiry by restarting
+from a recorded checkpoint. [DOC-API-002#p05]
+
+If these steps do not resolve it, reply to this ticket and a support specialist will take over.
+```
+
+*Figure 2. A released answer. Every factual line is a verbatim span of the cited passage, and each passage ID resolves to an exact version of the approved article.*
+
+The decision record for this ticket shows calibrated intent confidence 1.00, `api_usage_question`, evidence score 0.127 against a threshold of 0.06, no rules fired, and all five guardrails `pass`. Its fields are `action_taken: auto_respond`, `prompt_version: answer-extractive-v2` and `requirement_ids: FR05, FR07`.
+
+Figure 3 is the handoff a specialist receives for a protected ticket: *"We believe a production key was exposed and unauthorized access may have occurred."*
+
+```
+reason_codes : protected_intent:security_incident     rules fired: R-01, R-02, R-03
+summary      : Review security incident request (urgency high). Why escalated: This type of
+               request always needs a specialist. Customer said: Possible security incident …
+known        : Channel: email | Predicted intent: security_incident (0.98) |
+               Predicted urgency: high (0.40)
+unknown      : Customer-specific account state and final resolution are unverified.
+next_step    : A specialist must handle this category directly; check the customer's account
+               and policy before replying.
+customer msg : We have passed your request to a support specialist, together with the details
+               you sent. You do not need to resend anything; the specialist will reply on this
+               ticket.
+```
+
+*Figure 3. An escalation packet. The customer is told honestly that a person will reply. No response-time promise is made.*
+
+Three rules fired independently: the predicted intent (R-01), the word "exposed" (R-02) and "unauthorized access" (R-03). Layered rules mean a misclassified security ticket is still caught by its wording. The urgency confidence of 0.40 is shown as it is: low, and labelled as such in the UI.
+
+### 6.5 What was difficult
+
+The hardest problem was not technical. The first complete version passed every acceptance test, yet escalated 90.8% of tickets, worse than the 58% the client is trying to reduce. Finding the cause took a deliberate step back from the code to the labels (section 9). A second difficulty was calibration on templated data. With no classification errors on the calibration split, temperature scaling drove confidence toward 1.0. That is correct for in-distribution tickets and badly overconfident for anything else, which is what motivated the novelty gate. The build environment also blocked network installs, localhost binding, Docker and Azure DNS. Hosted CI became the independent proof of a clean install.
+
+### 6.6 What I would restructure
+
+The ticket use case in `service.py` grew into one long function. I would split it into explicit state-machine steps with typed transitions, the `ContextEnvelope` design in the research, so that each step can be tested in isolation. The handoff contracts exist as versioned JSON Schemas (`docs/schemas/`), but the prototype still passes some loosely typed dictionaries between steps. I would also move persistence behind a port so that PostgreSQL could replace SQLite for concurrent use.
+
+<!-- pagebreak -->
+## 7. Evaluation
+
+### 7.1 Method
+
+**Data.** Three disjoint uses of the supplied data:
+
+- The 500 development tickets were split once, by near-duplicate group, into 397 train tickets (model fitting) and 103 calibration tickets (temperature scaling and threshold selection).
+- The 80 visible validation tickets were used to check progress.
+- The hidden 120-ticket assessment set has never been seen.
+
+The harness takes an input path and was rehearsed on a reordered six-ticket file with a malformed row, a missing ID and the provider disabled.
+
+**Runs.** The figures below come from the final policy (v2), extractive mode, run unattended on 16 November 2026 with `scripts/batch.sh`. Every metric is computed by the harness in the same run (`metrics.json`). I have to be candid about the visible validation set. It was run at least thirteen times over the project (ten recorded batch directories, a repeat under v2 and two clean-clone rehearsals). During the first version, some of its results influenced policy text patterns, and those patterns have since been removed (section 9). The final thresholds were selected on the calibration split only, and no v2 threshold or rule changed after a validation run.
+
+**Definitions.**
+
+- **First-contact resolution proxy:** automatically answered tickets divided by all tickets. No customer confirmed resolution, so this is an upper bound.
+- **Safe-auto recall:** tickets labelled `auto_respond` that were answered and cited an expected article, divided by tickets labelled `auto_respond`.
+- **Wrong-article rate:** answers whose citations include none of the expected articles, divided by all answers.
+- **Protected false-auto:** tickets labelled `must_not_auto_respond` that were answered.
+
+### 7.2 Business outcomes
+
+| Measure | Baseline | Target | Achieved (dev) | Achieved (validation) | Confidence in the figure |
+|---|---:|---:|---:|---:|---|
+| First-contact resolution (proxy) | 42% | 60% | 72.8% | 68.8% | Low–medium: offline upper bound, no customer confirmation |
+| Mean time to first reply | 8–12 h | < 5 min | 5 ms (automated share) | 7 ms | Low: local processing only; escalations still wait for a person |
+| Satisfaction proxy | 3.2 / 5 | 4.0 | not measured | not measured | No human-rated sample yet |
+| Escalation rate | 58% | ≤ 30% | 27.2% | 31.3% | Medium: depends on label quality (7.5) |
+| Repeat contacts | 21.6% (sample) | halved | not measurable offline | — | Requires live follow-up data |
+
+*Table 8. Business outcomes. The automated figures are offline proxies.*
+
+Read together, these say that on tickets resembling the supplied data, roughly seven in ten could receive a cited answer within seconds instead of 8–12 hours. That would bring escalations to around the 30% target. What they do not say is that those customers' problems were solved. A pilot would need to measure confirmed resolution and repeat contacts, which is exactly the false-resolution failure the Evaluation Framework warns about.
+
+### 7.3 Technical performance
+
+| Measure | Target | Achieved (dev) | Achieved (validation) | Notes |
+|---|---:|---:|---:|---|
+| Intent precision (macro, 22 classes) | ≥ 85% | 100% | 100% | Also 100% on the held-out calibration split; templated data, so expect lower on new wording |
+| Intent recall (macro) | — | 100% | 100% | |
+| Urgency accuracy | — | 64.8% | 42.5% | 50% held-out; used for priority only, never for release |
+| Intent calibration (ECE) | ≤ 0.05 | 0.0003 | 0.002 | 0.002 on calibration split |
+| Route agreement with labels | — | 74.6% | 71.3% | First version: 47.0% / 43.8% |
+| Safe-auto recall | — | 86.5% | 81.3% | First version: 14.8% / 6.3% |
+| Answers citing an expected article | — | 98.1% | 98.2% | 7 and 1 wrong-article answers |
+| Exact citation resolvability | — | 100% | 100% (165/165) | ID, version and text match the corpus |
+| Hallucination rate | ≤ 5% | not measured | not measured | Extractive lines are verified verbatim (364/364 pass), but relevance needs two-person review |
+| Citation accuracy (semantic) | ≥ 95% | not measured | not measured | Same |
+| Latency p95 | < 3 s | 8 ms | 10 ms | Local, extractive; Azure mode unmeasured |
+| Availability | ≥ 99.5% | not measured | — | Provider outage degrades to escalation (tested), but no live uptime record |
+
+*Table 9. Technical performance.*
+
+### 7.4 Governance conditions
+
+| Condition | Requirement | Result |
+|---|---|---|
+| Private data in outbound text | Zero | 0 detections; the scan ran on all 419 answers; injected email draft blocked |
+| Protected tickets answered | Zero | 0 of 87 (dev) and 0 of 14 (validation) |
+| Out-of-scope tickets answered | Zero | 0 of 12 |
+| Decision logging | Complete | 500/500 and 80/80; input, terminal and decision ID lists identical |
+| Confidence calibration | Within 5 points | Intent: met (ECE 0.2 points); urgency: 5.5 points on calibration, not met |
+| Quality across groups | < 5 points | **Not met**: fluency 7.1 points, region 12.7 points (dev) |
+
+*Table 10. Governance conditions.*
+
+### 7.5 Interpretation
+
+**Where the escalations come from.** Of the 136 development escalations, 87 are protective-rule escalations: security, compliance, feature and unclear requests. Another 6 are data-location assurance requests. That leaves 41 with insufficient passage evidence and 2 novel requests. The protective escalations are the system working as intended. The 41 evidence escalations are where better retrieval would add coverage.
+
+**Coverage by intent.** Table 11 breaks the development run down by intent. Nine documented intents are answered every time. The four protected intents are never answered. Two weak spots stand out:
+
+- **Onboarding** (18% answered, 20% safe-auto recall). Onboarding questions are phrased broadly ("how do I get started with…"), so they rarely match a specific Resolution passage closely enough. This is the clearest single target for better retrieval.
+- **Authentication failure** (57%).
+
+At the other end, database issue and performance degradation are answered far more often than their labels suggest (23 of 26 answered, only 10 labelled auto). That is where the label disagreement concentrates, mostly in high-urgency tickets whose text is identical to labelled-auto ones.
+
+| Intent | Tickets | Answered | Labelled auto | Safe-auto recall | Main escalation reason |
+|---|---:|---:|---:|---:|---|
+| deployment failure | 27 | 27 (100%) | 19 | 84% | — |
+| api key issue | 18 | 18 (100%) | 12 | 100% | — |
+| rollback request | 28 | 28 (100%) | 21 | 100% | — |
+| data export | 29 | 29 (100%) | 27 | 100% | — |
+| sso configuration | 26 | 26 (100%) | 22 | 100% | — |
+| account access | 22 | 22 (100%) | 17 | 100% | — |
+| rate limit | 13 | 13 (100%) | 12 | 100% | — |
+| billing query | 24 | 24 (100%) | 21 | 100% | — |
+| quota or overage | 23 | 23 (100%) | 20 | 100% | — |
+| configuration help | 17 | 16 (94%) | 10 | 100% | insufficient evidence |
+| api usage question | 24 | 22 (92%) | 23 | 91% | novel request |
+| webhook issue | 21 | 19 (90%) | 16 | 88% | insufficient evidence |
+| database issue | 26 | 23 (88%) | 10 | 80% | insufficient evidence |
+| performance degradation | 23 | 19 (83%) | 10 | 90% | insufficient evidence |
+| data residency | 29 | 23 (79%) | 21 | 71% | data location assurance |
+| integration help | 21 | 15 (71%) | 16 | 75% | insufficient evidence |
+| authentication failure | 20 | 13 (65%) | 14 | 57% | insufficient evidence |
+| onboarding | 22 | 4 (18%) | 20 | 20% | insufficient evidence |
+| compliance request | 26 | 0 (0%) | 0 | — | protected intent |
+| feature request | 20 | 0 (0%) | 0 | — | protected intent |
+| security incident | 26 | 0 (0%) | 0 | — | protected intent |
+| unclear request | 15 | 0 (0%) | 0 | — | protected intent |
+
+*Table 11. Development run by intent (policy v2). Safe-auto recall uses only tickets labelled `auto_respond`.*
+
+**The answers that disagree with the labels.** 90 development answers (25% of answers) went to tickets whose supplied label says `escalate` but which are not protected. I could have reduced this number only by escalating tickets whose text is identical to tickets labelled `auto_respond`. Among non-protected tickets, 40 of 191 groups of identical text carry both labels. Whatever distinguishes them is not in the ticket, perhaps account context or the historical agent's judgement. I therefore report them separately from safety failures and treat them as the first item for human review. They are not proof of harm, and they are not proof of safety either.
+
+**Fairness.** The variation the Governance Framework predicts is present. Non-fluent customers' safe-auto recall is 81.2% against 88.3% for fluent customers. Their tickets more often fail the lexical evidence threshold (10 of 80 versus 19 of 231 labelled-auto tickets). The failure direction is safe, since non-fluent customers are escalated more rather than answered wrongly. Even so, it means they wait longer, which is exactly the inequity Sofia worried about. Enterprise customers are not worse served (90.2%), which answers Marcus's and Ravi's concern. Regional gaps exist without any regional feature in the model; with 39–105 labelled tickets per region they are probably noise, but I report them.
+
+### 7.6 Limits of what was measured
+
+The figures above should be treated with caution because the tickets are synthetic and heavily templated (216 distinct bodies in 500). The development figures are partly in-sample. The validation set shares 62 of its 80 texts with development. The route labels contradict themselves on identical text. No human has yet rated answer relevance or claim support. Business outcomes are offline proxies with no customer confirmation. The single most informative next measurement is a two-person review of at least 50 automatic answers, including the 90 label-disagreement cases. The review tooling, a 120-ticket stratified queue, two independent reviewer templates and an agreement script, is built and waiting in `evaluation/gold/`.
+
+## 8. Governance and risk
+
+The full governance pack is Appendix B (`docs/governance.md`). In summary:
+
+**Risk register.** Nine risks are registered, each with likelihood, impact, a mitigation that names a control in the code and the test that shows it, residual risk and owner. The two highest are a confidently wrong answer (R-01) and instruction injection (R-03). They are mitigated by protective rules, the novelty gate, extractive verified answers and the instruction-integrity guardrail. The only risk recorded as observed rather than potential is unequal quality across groups (R-04).
+
+**Fairness audit.** Section 7.5 and Appendix B give segment tables by tier, fluency, ticket length and region, with counts. Two conditions are not met, and I say so.
+
+**Decision logging.** Every ticket writes the Governance Framework's minimum record. That includes model and prompt versions, alternatives, sources with scores, thresholds applied, rule IDs fired, the action and a readable reason, guardrail results (pass and fail) and requirement IDs. Coverage reconciles exactly in every run, and the harness refuses to finish if it does not.
+
+**Guardrails.** Five checks run in production code on every answer, plus an input check on every eligible ticket. All can block, none redacts and sends, and every result is recorded. An assessor can trigger one by submitting a ticket containing "Ignore all previous instructions…", which is blocked and escalated.
+
+**Kill switch and incident procedure.** An operator can stop all automatic answers from the Overview page, through `POST /v1/policy/kill-switch`, or with an environment variable. It takes effect on the next ticket, and tickets in flight are re-checked and held. A six-step incident procedure (detect, contain, assess, notify, remediate, review) is written for someone unfamiliar with the system at 2 a.m.
+
+**Declaration.** This system must never send an automatic answer to a security, compliance, billing-dispute, account-compromise or roadmap request, or send text not traceable to an approved CloudServe article. That is enforced by versioned rules evaluated before any drafting, extractive answers verified line by line, blocking guardrails and the kill switch. The most likely way it could still cause harm is sending the right article to a customer whose situation it does not fit. I would not deploy it without a two-person review of answers, authentication on the API, a fix for the fluency gap and a supervised pilot.
+
+## 9. The requirements revision
+
+**What prompted it.** The first complete version met every acceptance criterion, and it was useless. It answered 46 of 500 development tickets and escalated 90.8%, worse than the baseline it was meant to reduce. That fails Marcus's second test: a system that makes more work than it saves. Tracing the escalations showed that 197 came from a single gate, a classifier predicting the supplied `answerable_from_docs` label.
+
+**What I found.** That classifier scored ROC AUC 0.32 on held-out development data and 0.55 on validation, which is chance. The cause was in the labels themselves: identical text carries both answers in 40 of 191 duplicate groups. I also found that 62 of 80 validation texts repeat development text. Three of my own policy patterns had been written against specific validation tickets, which is tuning against the check set. And the classifier had been trained on all 500 development tickets, so its "100% precision" was in-sample.
+
+**What changed (version 2).**
+
+- The classifier now trains on a leakage-safe split and is calibrated on held-out data.
+- The answerability gate is gone; the system escalates only what it cannot ground.
+- Rules moved into a versioned table with interview evidence. The three validation-fitted patterns were deleted, and billing-dispute, account-compromise and data-location rules were added from Daniel's interview.
+- A novelty requirement (FR-13) was added after I found calibrated confidence of 0.99 on "My cat ate my keyboard".
+- A kill switch (NFR-08) was added.
+- Thresholds are now chosen by the recorded risk–coverage procedure.
+
+Automatic answers rose from 9.2% to 72.8% and escalation fell to 27.2%, with protected false-auto still zero.
+
+| Measure (development / validation) | Version 1 | Version 2 |
+|---|---|---|
+| Automatic answers | 46 / 3 | 364 / 55 |
+| Escalation rate | 90.8% / 96.3% | 27.2% / 31.3% |
+| Route agreement with labels | 47.0% / 43.8% | 74.6% / 71.3% |
+| Safe-auto recall | 14.8% / 6.3% | 86.5% / 81.3% |
+| Protected false-auto | 0 / 0 | 0 / 0 |
+| Intent calibration ECE | 0.456 / 0.501 | 0.0003 / 0.002 |
+| Thresholds | Hand-set (0.24, 0.11, 0.68) | Selected on calibration split (0.90, 0.35, 0.30, 0.06) |
+| Rules | Regexes in code, three fitted to validation tickets | Versioned table R-00–R-07 with evidence and owners |
+| Kill switch | None | UI, API, environment variable |
+| Answer content | First 540 characters of one passage | Full procedure, causes and notes, each line verified |
+
+*Table 12. Version 1 against version 2.*
+
+**What it taught me.** I had treated the labels as ground truth and escalation as the safe default. Both were wrong. A label is only a useful target if the input contains the information to predict it, and a system that escalates everything hides its uncertainty as effectively as one that answers everything. The requirement should have been "escalate what cannot be grounded" from the first day. The full log, including the assumptions that failed and the things I chose not to change, is the Stage 5 workbook (Appendix A) and `docs/PRD_revision_log.md`.
+
+## 10. Conclusions
+
+**What was achieved.** A runnable, tested system that answers about seven in ten CloudServe-style tickets with a cited, verifiable reply from approved documentation. It refuses every protected ticket and every out-of-scope fixture, and hands the rest to a person with the reasoning attached. It processes any input file unattended, explains every decision in a persistent record, can be stopped instantly, and costs nothing to run in its default mode.
+
+**What I would do next, in order.**
+
+1. Two-person review of at least 50 automatic answers, starting with the 90 label-disagreement cases, to measure hallucination and citation accuracy properly.
+2. Measure Azure ada-002 dense and hybrid retrieval on the same split, primarily to close the 7-point fluency gap.
+3. Add authentication and role checks to the API, especially the kill switch and knowledge approval.
+4. Run a supervised pilot that measures confirmed resolution, repeat contacts and CSAT instead of proxies.
+5. Make answers more specific to the ticket, possibly with the GPT-4o drafting path, but only behind the same verifier, and only once the reviewed sample shows it adds value.
+
+**What remains uncertain.** Whether the answers are actually helpful to the customers who receive them; whether the label disagreements hide real risk; how the system behaves on wording genuinely unlike the training set; and whether CloudServe's real tickets are as repetitive as the supplied sample.
+
+## Declaration of AI tool use
+
+I used Anthropic's Claude (Claude Code) and, earlier in the project, an OpenAI coding assistant extensively. They helped synthesise research, design the architecture, write most of the Python and React code and the tests, run and analyse evaluations, and draft the documentation, workbooks and this report. I supplied the brief and the design direction, chose Azure as the provider, set the scope decisions (including what to drop), and reviewed the outputs. Points where I overrode or corrected AI output:
+
+- I rejected the first version after seeing its 90.8% escalation rate, and directed the diagnosis that led to revision R1.
+- I removed patterns that had been fitted to validation tickets.
+- A date error in the generated documentation was found and corrected.
+- I insisted that effort-log hours come only from my own record.
+
+All figures in this report were produced by scripts in the repository and can be regenerated with the commands in Appendix D. No third-party source code was copied beyond the open-source packages listed in `requirements.txt` and `frontend/package-lock.json`. Commits co-written with the assistant are marked with a `Co-Authored-By` line.
+
+<!-- pagebreak -->
+
+## Appendices
+
+- **Appendix A — Stage workbooks.** Submitted separately in `03_Workbooks` and in the repository under `docs/workbooks/`.
+- **Appendix B — Governance pack.** Reproduced below from `docs/governance.md`.
+- **Appendix C — Acceptance traceability (A1–A12).** Reproduced below from `docs/traceability.md`.
+- **Appendix D — Evaluation snapshot and reproduction commands.** Reproduced below from `docs/evaluation_snapshot.md`.
+- **Appendix E — Prompt register.** `prompts/registry.json` and the Stage 3 workbook.

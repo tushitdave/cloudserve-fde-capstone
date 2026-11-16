@@ -393,3 +393,9 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 - Stage 2–5 workbooks drafted in `docs/workbooks/` from the PRD, prompt registry, ledger and revision log. They are rendered to DOCX with `scripts/md_to_html.py` and `textutil`. P10-01 stays open until the student reviews them.
 - The effort log is a template with tasks and outputs from the ledger. Hours are blank by design (P1-05/P10-02: student only).
 - Correction: entries earlier in this ledger dated "17 November" were written on 16 November and have been corrected.
+
+### Report draft (16 November 2026, evening)
+
+- `docs/report/report.md` holds the 10 prescribed sections, 12 numbered tables and 3 figures, the "should be treated with caution because" statement and the AI-use declaration. Appendices B–D (governance, traceability, evaluation snapshot) are appended at build time.
+- `scripts/build_report.sh` renders it with headless Chrome. The output is 32 pages: body pp. 1–20, appendices from p. 21. Every figure in the report traces to `metrics.json`, `threshold_selection_v1.json` or the Stage 1 counts.
+- P10-03 stays open until the student reviews and approves the report text.
