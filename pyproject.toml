@@ -6,13 +6,17 @@ build-backend = "setuptools.build_meta"
 name = "cloudserve-capstone"
 version = "0.1.0"
 description = "CloudServe FDE capstone API"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 dependencies = [
   "fastapi>=0.163,<1",
   "uvicorn>=0.54,<1",
   "scikit-learn>=1.9,<2",
   "numpy>=2.5,<3",
-  "pydantic>=2.14,<3"
+  "pydantic>=2.14,<3",
+  "chromadb>=1.5,<2",
+  "fastembed>=0.9,<1",
+  "langgraph>=1.0,<2",
+  "cryptography>=46,<51"
 ]
 
 [project.optional-dependencies]
