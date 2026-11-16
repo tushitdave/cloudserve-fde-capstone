@@ -8,7 +8,7 @@
 
 **Overall state:** policy v2 (calibrated classifier, versioned rules, kill switch, data-selected thresholds) answers 72.8% of development and 68.8% of visible validation tickets with zero protected false-auto; 64 backend tests and the React build pass. Live browser, dense Azure index, fresh-install/CI and deployment checks remain open.
 
-**Next milestone:** close A1–A12 clean-startup/browser gaps, independent gold review, API security and submission artifacts.
+**Next milestone (student, 17–18 Nov):** review the report and workbooks, fill in effort-log hours, browser-check `scripts/dev.sh` from a fresh clone, record the video, run `scripts/package_submission.sh`.
 **Status notation:** `[x]` verified complete · `[ ]` open. A task is complete only when its stated proof is saved. Record blocked work in the session log; do not silently mark it done.
 
 ## 1. Source of truth and non-negotiable scope
@@ -399,3 +399,10 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 - `docs/report/report.md` holds the 10 prescribed sections, 12 numbered tables and 3 figures, the "should be treated with caution because" statement and the AI-use declaration. Appendices B–D (governance, traceability, evaluation snapshot) are appended at build time.
 - `scripts/build_report.sh` renders it with headless Chrome. The output is 32 pages: body pp. 1–20, appendices from p. 21. Every figure in the report traces to `metrics.json`, `threshold_selection_v1.json` or the Stage 1 counts.
 - P10-03 stays open until the student reviews and approves the report text.
+
+### Submission staging (16 November 2026, night)
+
+- `scripts/package_submission.sh <Name> <staging> <out>` clones the committed repository as `04_Source_Code`, runs the architecture/credential check and a key-pattern scan, and zips exactly `01_Video`, `02_Report`, `03_Workbooks` and `04_Source_Code`. A dry run with a placeholder video produced `TushitDave_Capstone_Submission.zip` (1.9 MB) with those four folders only.
+- Staging lives at `../Submission_Staging/` (outside the repository): the report PDF, five workbook DOCX files and the effort-log template (DOCX + PDF). `01_Video` holds a placeholder until the recording exists.
+- README now states prerequisites (Python ≥3.12, Node ≥22) and what the batch command writes.
+- **Remaining, student only:** report and workbook review (P10-01, P10-03); effort hours (P1-05, P10-02); video (P10-04); a fresh-clone browser rehearsal (P0-04, P0-06, P10-05); final archive (P10-06). **Deliberately dropped** (stated in the report): dense retrieval measurement (P4-01..05), API authentication (P7-01, P9-03), monitoring (P9-04), o3-mini triage (P5-06), ContextEnvelope (P6-08), Docker Compose rehearsal (P9-06), and the two-person gold review (P8-02/03).
