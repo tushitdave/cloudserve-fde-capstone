@@ -1,6 +1,6 @@
 # Governance: risk, fairness, decision logging and incident response
 
-Written against the capstone Governance Framework for policy v2, 17 November 2026. Every mitigation below names a control that exists in the code and the test that shows it working. Where a control does not exist, the risk entry says so.
+Written against the capstone Governance Framework for policy v2, 16 November 2026. Every mitigation below names a control that exists in the code and the test that shows it working. Where a control does not exist, the risk entry says so.
 
 Owners are roles. In this single-student project the student holds all of them for the prototype; a CloudServe deployment would assign named people.
 

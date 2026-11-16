@@ -1,6 +1,6 @@
 # Offline evaluation snapshot — policy v2
 
-Generated on 17 November 2026 in extractive mode (no model provider) from:
+Generated on 16 November 2026 in extractive mode (no model provider) from:
 
 - `evaluation/reports/development-policy-v2/` (500 development tickets)
 - `evaluation/reports/validation-policy-v2/` (80 visible validation tickets)

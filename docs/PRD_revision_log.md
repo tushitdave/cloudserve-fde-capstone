@@ -2,7 +2,7 @@
 
 Stage 5 record of substantive requirement changes after contact with the build and the data. Each entry names what changed, the evidence that prompted it and how it was tested. PRD v1 is preserved in [PRD_v1.md](PRD_v1.md); the requirements below supersede it where they conflict.
 
-## Revision R1 — 17 November 2026: routing driven by measured evidence, not by an answerability score
+## Revision R1 — 16 November 2026: routing driven by measured evidence, not by an answerability score
 
 **What prompted it.** The first full runs answered only 46 of 500 development tickets (9.2%) and 3 of 80 visible validation tickets. Escalation was 90.8%, worse than CloudServe's 58% baseline, so the system would have added work rather than removed it, which was Marcus's second failure condition. Diagnosis showed 197 of the 265 wrongly escalated development tickets were stopped by a text classifier predicting `answerable_from_docs`.
 
@@ -26,7 +26,7 @@ Stage 5 record of substantive requirement changes after contact with the build a
 | FR07 answer and validation | First 540 characters of the Resolution passage; verification trivially passed in extractive mode. | Full numbered resolution steps plus the article's common causes and notes, each line cited. The answer discloses that it is automated (Ravi). The verifier checks every cited line is an exact span of its cited passage. Deterministic guardrails (instruction integrity, grounding, tone/scope, private data, claim support) record pass/fail on every ticket. |
 | A7 trigger | Guardrail could only be shown by monkey-patching the drafter. | A ticket containing an instruction-override attempt is blocked and escalated by the `instruction_integrity` input guardrail. |
 
-**Result** (extractive mode, 17 November 2026; full tables in [evaluation_snapshot.md](evaluation_snapshot.md)):
+**Result** (extractive mode, 16 November 2026; full tables in [evaluation_snapshot.md](evaluation_snapshot.md)):
 
 | | v1 dev | v2 dev | v1 validation | v2 validation |
 |---|---:|---:|---:|---:|

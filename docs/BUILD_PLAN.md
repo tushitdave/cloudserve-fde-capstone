@@ -2,7 +2,7 @@
 
 **Purpose:** This is the single execution checklist and restart record for the application. Update it after each work session so the next session can see what is done, what failed, what evidence exists, and what to do next. The [architecture](architecture.md) defines *what* to build; this document tracks *when it is actually working*.
 
-**Last reviewed:** 17 November 2026
+**Last reviewed:** 16 November 2026
 
 **Project root for code:** `CloudServe_App/`
 
@@ -89,7 +89,7 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 
 | Done | ID | Task | Proof / completion condition |
 |---|---|---|---|
-| [ ] | P1-01 | Convert interview and dataset findings into the student's own business and technical problem statements. | Discovery workbook with cited finding IDs and explicit assumptions. |
+| [x] | P1-01 | Convert interview and dataset findings into the student's own business and technical problem statements. | Discovery workbook with cited finding IDs and explicit assumptions. |
 | [x] | P1-02 | Complete PRD v1: functional requirements, nonfunctional targets, protected cases and exclusions. | Requirement IDs trace to evidence and a test or metric. |
 | [x] | P1-03 | Document architecture alternatives, six-agent rationale, Azure model choices and why graph is conditional. | ADRs and PRD design section reviewed. |
 | [x] | P1-04 | Build a requirement-to-code-to-test traceability matrix, including A1–A12. | Every acceptance criterion maps to planned owner, file and proof. |
@@ -366,7 +366,7 @@ P4-06 completed: Evidence Agent now returns typed `QueryPlan` and `EvidenceBundl
 
 Fresh full batches after the typed Evidence Agent change processed **500 development** (46 sent, 454 escalated) and **80 visible validation** (3 sent, 77 escalated) in `evaluation/reports/dev-evidence-v2/` and `validation-evidence-v2/`, each with exact terminal/decision reconciliation. No customer-facing route changed.
 
-### Step 2 session — routing, calibration and policy v2 (17 November 2026)
+### Step 2 session — routing, calibration and policy v2 (16 November 2026)
 
 - **Task IDs:** P5-01, P5-02, P5-03, P5-04, P5-05, P5-07, P6-04 and P6-05 are checked. P5-06 (Triage incremental gain), P6-06 (reviewer usability of packets) and P9-01 (cost/timing in traces) remain open.
 - **Finding:** v1 escalated 90.8% of tickets. The answerability gate behind 197 of those wrong escalations has held-out AUC 0.32–0.55, because identical non-protected text carries opposite labels in 40 of 191 groups. 62 of 80 validation bodies duplicate development text. Three v1 regexes were fitted to validation tickets and have been removed. Details: [PRD revision R1](PRD_revision_log.md), F07–F09 in the [problem statement](problem_statement.md).
@@ -375,14 +375,21 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 - **Not met / limits:** the fluency gap is 7.1 points on development (<5 required) and the region gap is 12.7 points. Urgency is 50% on held-out data. 90 dev / 15 validation answers went to label-`escalate` tickets and need human review. Hallucination and semantic citation accuracy remain unmeasured. The visible validation set was run twice under v2 with identical counts; no threshold was changed after it.
 - **Next:** commit; fresh-install + CI (P0-02/04/05); live browser demo; dense retrieval for the fluency gap (P4); two-person answer review (P8-02/03); governance register (P9-07); workbooks/report (P10).
 
-### Repository publication and hosted CI (17 November 2026)
+### Repository publication and hosted CI (16 November 2026)
 
 - Repository published at https://github.com/tushitdave/cloudserve-fde-capstone after a credential scan. Every key and endpoint value from the private workspace `.env` was checked against full git history, the tracked tree and pending files, and none was found.
 - Hosted CI run **43889620478** passed on a fresh `ubuntu-latest` runner with Python 3.12. It ran a pinned `pip install -r requirements.txt` (exact versions installed), the architecture/credential check, **64 passed**, and `npm ci && npm run build`. This closes P0-02 (fresh install of the pinned dependencies) and P0-05 (CI run ID). A clean-checkout run of README `scripts/dev.sh` with a browser check (P0-04/P0-06) and the container build (P9-06) remain open.
 
-### Prompt library, governance and demo script (17 November 2026)
+### Prompt library, governance and demo script (16 November 2026)
 
 - `prompts/` now holds versioned prompts PR-01–PR-05 with a `registry.json` (agent, model, inputs/outputs, requirement IDs, change log). The Azure prompts are loaded from these files at runtime (`agents.prompt`), and the backend Dockerfile copies `prompts/`. Test `test_prompt_registry_files_exist_and_load`. P6-01 stays open: knowledge-agent and Evidence specifications, per-agent timeouts and trace spans are not yet in the registry.
 - **P9-07 checked:** [governance.md](governance.md) holds the decision-log specification, a 9-risk register (likelihood, impact, control with evidence, residual risk, owner), the fairness audit across all Framework segments with counts, the guardrail table, a 6-step incident procedure, the kill-switch table and the declaration. The fluency and region gaps are reported as not meeting the <5-point condition.
 - The demo script in [submission_readiness.md](submission_readiness.md) has been rewritten for v2: success, escalation, guardrail, out-of-scope, kill switch, full run and limits.
 - `./scripts/test.sh`: **65 passed**, React build OK.
+
+### Workbooks and effort-log draft (16 November 2026, evening)
+
+- **P1-01 checked:** `docs/workbooks/Stage_1_Discovery_Workbook.md` is filled from the transcripts and data. Its four disagreements are settled by counts: answerable 71.4%; escalated-but-answerable 49.1%; non-fluent CSAT 3.04 vs 2.95; enterprise median resolution 369 min.
+- Stage 2–5 workbooks drafted in `docs/workbooks/` from the PRD, prompt registry, ledger and revision log. They are rendered to DOCX with `scripts/md_to_html.py` and `textutil`. P10-01 stays open until the student reviews them.
+- The effort log is a template with tasks and outputs from the ledger. Hours are blank by design (P1-05/P10-02: student only).
+- Correction: entries earlier in this ledger dated "17 November" were written on 16 November and have been corrected.

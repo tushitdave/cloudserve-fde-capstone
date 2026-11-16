@@ -1,6 +1,6 @@
 {
   "policy_version": "policy-v2",
-  "effective_from": "2026-11-17",
+  "effective_from": "2026-11-16",
   "owner": "Head of Customer Support (policy owner); FDE student (implementer)",
   "approval": "Approved for the capstone prototype by the student acting as policy owner; requires CloudServe sign-off before any live use.",
   "change_note": "Replaces policy-v1. Removes three text patterns that were written against specific visible-validation tickets, removes the answerability-classifier gate (held-out AUC 0.32-0.55, i.e. no better than chance), adds billing-dispute, account-compromise and data-location-assurance rules from interview evidence, adds a kill switch, and loads thresholds from a recorded risk-coverage selection.",

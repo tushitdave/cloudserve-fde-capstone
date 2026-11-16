@@ -26,6 +26,6 @@
   ],
   "change_log": [
     {"date": "2026-11-16", "change": "PR-01, PR-02 introduced inline in agents.py"},
-    {"date": "2026-11-17", "change": "Prompts moved to versioned files loaded at runtime; PR-03..PR-05 documented after policy v2 (PRD revision R1)"}
+    {"date": "2026-11-16", "change": "Prompts moved to versioned files loaded at runtime; PR-03..PR-05 documented after policy v2 (PRD revision R1)"}
   ]
 }
