@@ -1,6 +1,6 @@
 """Local-demo knowledge intake, human review, publication and lineage API."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from cloudserve.knowledge import index, manifest, passages_from_documents, resolve
@@ -8,6 +8,7 @@ from cloudserve.knowledge_pipeline import KnowledgeService
 from cloudserve.knowledge_store import KnowledgeConflict, _content_hash
 from cloudserve.storage import Store
 from cloudserve.config import runtime_dir
+from cloudserve.security import require
 
 router = APIRouter(prefix="/v1/knowledge", tags=["knowledge"])
 service = KnowledgeService()
@@ -34,17 +35,17 @@ class PublishIn(BaseModel):
 
 
 @router.post("/jobs")
-def stage_document(payload: DocumentIn):
+def stage_document(payload: DocumentIn, _principal=Depends(require("knowledge_owner"))):
     return service.stage(payload.model_dump())
 
 
 @router.get("/jobs")
-def jobs(limit: int = 50):
+def jobs(limit: int = 50, _principal=Depends(require("knowledge_owner", "operator"))):
     return service.store.list_jobs(max(1, min(limit, 100)))
 
 
 @router.get("/jobs/{job_id}")
-def job(job_id: str):
+def job(job_id: str, _principal=Depends(require("knowledge_owner", "operator"))):
     found = service.store.get_job(job_id)
     if not found:
         raise HTTPException(status_code=404, detail="Knowledge job not found")
@@ -52,7 +53,7 @@ def job(job_id: str):
 
 
 @router.post("/jobs/{job_id}/approve")
-def approve(job_id: str, payload: ReviewIn):
+def approve(job_id: str, payload: ReviewIn, _principal=Depends(require("knowledge_owner"))):
     try:
         return service.review(job_id, payload.reviewer, payload.note, True)
     except KeyError as error:
@@ -62,7 +63,7 @@ def approve(job_id: str, payload: ReviewIn):
 
 
 @router.post("/jobs/{job_id}/reject")
-def reject(job_id: str, payload: ReviewIn):
+def reject(job_id: str, payload: ReviewIn, _principal=Depends(require("knowledge_owner"))):
     try:
         return service.review(job_id, payload.reviewer, payload.note, False)
     except KeyError as error:
@@ -72,7 +73,7 @@ def reject(job_id: str, payload: ReviewIn):
 
 
 @router.post("/jobs/{job_id}/publish")
-def publish(job_id: str, payload: PublishIn):
+def publish(job_id: str, payload: PublishIn, _principal=Depends(require("knowledge_owner"))):
     try:
         return service.publish(job_id, payload.operator)
     except KeyError as error:
@@ -82,12 +83,12 @@ def publish(job_id: str, payload: PublishIn):
 
 
 @router.get("/indexes/active")
-def active_index():
+def active_index(_principal=Depends(require("support_agent", "knowledge_owner", "operator"))):
     return manifest()
 
 
 @router.get("/passages/{passage_id:path}")
-def passage(passage_id: str, source_version: str | None = None):
+def passage(passage_id: str, source_version: str | None = None, _principal=Depends(require("support_agent", "knowledge_owner", "operator"))):
     found = resolve(passage_id, source_version)
     if not found:
         raise HTTPException(status_code=404, detail="Passage or source version not found")
@@ -95,14 +96,14 @@ def passage(passage_id: str, source_version: str | None = None):
 
 
 @router.get("/documents")
-def documents():
+def documents(_principal=Depends(require("support_agent", "knowledge_owner", "operator"))):
     passages, _, _ = index()
     return list({p.doc_id: {"doc_id": p.doc_id, "title": p.title, "source_version": p.source_version,
                             "passage_count": sum(1 for candidate in passages if candidate.doc_id == p.doc_id)} for p in passages}.values())
 
 
 @router.get("/documents/{doc_id}")
-def document(doc_id: str):
+def document(doc_id: str, _principal=Depends(require("support_agent", "knowledge_owner", "operator"))):
     found = next((doc for doc in service.store.active_documents() if doc["doc_id"] == doc_id), None)
     if not found:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -110,7 +111,7 @@ def document(doc_id: str):
 
 
 @router.get("/documents/{doc_id}/versions")
-def versions(doc_id: str):
+def versions(doc_id: str, _principal=Depends(require("support_agent", "knowledge_owner", "operator"))):
     found = service.store.versions(doc_id)
     if not found:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -118,7 +119,7 @@ def versions(doc_id: str):
 
 
 @router.get("/documents/{doc_id}/lineage")
-def lineage(doc_id: str, source_version: str | None = None):
+def lineage(doc_id: str, source_version: str | None = None, _principal=Depends(require("support_agent", "knowledge_owner", "operator"))):
     found = (service.store.source_version(doc_id, source_version) if source_version else
              next((doc for doc in service.store.active_documents() if doc["doc_id"] == doc_id), None))
     if not found:

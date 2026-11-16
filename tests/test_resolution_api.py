@@ -8,11 +8,11 @@ from cloudserve.main import app
 from cloudserve.service import TicketService
 
 
-async def request(method: str, path: str, payload=None):
+async def request(method: str, path: str, payload=None, key: str | None = "demo-admin-key"):
     body = json.dumps(payload).encode() if payload is not None else b""
     scope = {"type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1",
              "method": method, "scheme": "http", "path": path, "raw_path": path.encode(),
-             "query_string": b"", "root_path": "", "headers": [(b"content-type", b"application/json")],
+             "query_string": b"", "root_path": "", "headers": [(b"content-type", b"application/json")] + ([(b"x-api-key", key.encode())] if key else []),
              "client": ("127.0.0.1", 0), "server": ("test", 80)}
     sent = []
     first = True

@@ -10,11 +10,11 @@ from cloudserve.knowledge_pipeline import KnowledgeService
 from cloudserve.main import app
 
 
-async def request(method: str, path: str, payload=None, query: bytes = b""):
+async def request(method: str, path: str, payload=None, query: bytes = b"", key: str | None = "demo-admin-key"):
     body = json.dumps(payload).encode() if payload is not None else b""
     scope = {"type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1", "method": method,
              "scheme": "http", "path": path, "raw_path": path.encode(), "query_string": query,
-             "root_path": "", "headers": [(b"content-type", b"application/json")],
+             "root_path": "", "headers": [(b"content-type", b"application/json")] + ([(b"x-api-key", key.encode())] if key else []),
              "client": ("127.0.0.1", 0), "server": ("test", 80)}
     sent = []
     first = True

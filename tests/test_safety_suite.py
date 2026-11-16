@@ -89,6 +89,6 @@ def test_non_string_model_output_fails_closed(tmp_path, monkeypatch):
 
 def test_storage_failure_is_not_reported_as_success(tmp_path, monkeypatch):
     service = TicketService(tmp_path / "tickets.sqlite")
-    monkeypatch.setattr(service.store, "save", lambda *_: (_ for _ in ()).throw(OSError("disk unavailable")))
+    monkeypatch.setattr(service.store, "save", lambda *_, **__: (_ for _ in ()).throw(OSError("disk unavailable")))
     with pytest.raises(OSError, match="disk unavailable"):
         service.process(documented_ticket())
