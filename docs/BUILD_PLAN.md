@@ -77,10 +77,10 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 | Done | ID | Task | Proof / completion condition |
 |---|---|---|---|
 | [x] | P0-01 | Choose final repository root and align prescribed top-level paths without duplicating the backend implementation. | Tree review against Submission Guide; imports and Docker paths updated. |
-| [ ] | P0-02 | Pin backend dependencies and commit frontend lockfile. | Fresh environment installs exact resolved versions. |
+| [x] | P0-02 | Pin backend dependencies and commit frontend lockfile. | Fresh environment installs exact resolved versions. |
 | [x] | P0-03 | Complete `.env.example` for every required variable; add configuration validation and safe defaults. | App starts with documented config; missing secret produces clear error or safe fallback. |
 | [ ] | P0-04 | Add one-command development startup, batch run and tests to README. | Commands copied literally into a clean directory succeed. |
-| [ ] | P0-05 | Add CI for syntax, unit/contract/integration checks and secret scan. | CI workflow run ID and passing log. |
+| [x] | P0-05 | Add CI for syntax, unit/contract/integration checks and secret scan. | CI workflow run ID and passing log. |
 | [ ] | P0-06 | Verify FastAPI ↔ Nginx ↔ React health path in a built container stack. | `GET /api/health` returns `ok`; browser screenshot or command output saved. |
 | [x] | P0-07 | Run a clean-checkout rehearsal on another directory/machine. | Rehearsal log with OS, commands, versions and result. |
 | [x] | P0-08 | Add repository-level coding-agent instructions and a mechanical architecture/dependency check. | Fresh session can follow task ID → proof → ledger update; CI rejects forbidden imports or secret exposure. |
@@ -374,3 +374,8 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 - **Proof:** `CLOUDSERVE_PYTHON=… ./scripts/test.sh` gave architecture check OK, **64 passed**, React build OK. `evaluation.threshold_selection` used the calibration split only: 1,680 configurations, chosen intent 0.90 / similarity 0.35 / document 0.30 / evidence 0.06, coverage 79.6%, wrong article 2.4%, protected 0, out-of-scope 0 (`data/manifests/threshold_selection_v1.json`). Batch `development-policy-v2`: 364 sent / 136 escalated, safe-auto recall 0.865, protected false-auto 0, wrong-article 1.9% of sent, reconciliation true. Batch `validation-policy-v2`: 55 / 25, recall 0.812, protected 0, wrong-article 1.8%, reconciliation true. Calibration record: `data/manifests/calibration_report_v1.json`.
 - **Not met / limits:** the fluency gap is 7.1 points on development (<5 required) and the region gap is 12.7 points. Urgency is 50% on held-out data. 90 dev / 15 validation answers went to label-`escalate` tickets and need human review. Hallucination and semantic citation accuracy remain unmeasured. The visible validation set was run twice under v2 with identical counts; no threshold was changed after it.
 - **Next:** commit; fresh-install + CI (P0-02/04/05); live browser demo; dense retrieval for the fluency gap (P4); two-person answer review (P8-02/03); governance register (P9-07); workbooks/report (P10).
+
+### Repository publication and hosted CI (17 November 2026)
+
+- Repository published at https://github.com/tushitdave/cloudserve-fde-capstone after a credential scan. Every key and endpoint value from the private workspace `.env` was checked against full git history, the tracked tree and pending files, and none was found.
+- Hosted CI run **43889620478** passed on a fresh `ubuntu-latest` runner with Python 3.12. It ran a pinned `pip install -r requirements.txt` (exact versions installed), the architecture/credential check, **64 passed**, and `npm ci && npm run build`. This closes P0-02 (fresh install of the pinned dependencies) and P0-05 (CI run ID). A clean-checkout run of README `scripts/dev.sh` with a browser check (P0-04/P0-06) and the container build (P9-06) remain open.
