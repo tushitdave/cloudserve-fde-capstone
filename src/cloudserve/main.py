@@ -8,7 +8,7 @@ from cloudserve.api.routes.health import router as health_router
 from cloudserve.api.routes.knowledge import router as knowledge_router
 from cloudserve.api.routes.policy import router as policy_router
 from cloudserve.api.routes.tickets import router as tickets_router
-from cloudserve.retrieval import warm_up
+from cloudserve.adapters.retrieval.dense_index import warm_up
 
 
 @asynccontextmanager

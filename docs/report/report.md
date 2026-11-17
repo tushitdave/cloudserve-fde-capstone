@@ -191,6 +191,9 @@ The design defines six roles across the two pipelines (Table 5). In the implemen
 | Answer generation | LLM drafting; extractive template | Extractive by default (zero hallucination by construction, zero cost); GPT-4o opt-in |
 | Model provider | OpenRouter/Groq free tier (brief); Azure OpenAI | Azure deployments were available to me. Because the default path makes no model call, the hidden-set run costs nothing and does not depend on any provider |
 | Knowledge structure | Vector store as source of truth; governed store + index; graph | Governed versioned store (SQLite + source manifest) is the source of truth. The Chroma collection is a derived index named by the approved-snapshot hash, so a changed article always builds a new index. No graph: 29 articles and no multi-hop questions |
+| Chunking | Section-aware; fixed 80/20 windows; parent-child | Measured (`chunking_comparison_v1.json`): fixed windows broke every numbered procedure; parent-child gained 1 of 73 tickets with 2.5× the chunks. Section-aware kept |
+| Classifier | TF-IDF+LR (+temperature); LinearSVC; MiniLM+LR; GPT-4o zero-shot | Measured (`classifier_comparison_v1.json`): production model best (macro-F1 1.00, ECE 0.002); MiniLM 0.968; GPT-4o 0.896 at 459 ms per ticket |
+| Claim verifier (azure mode) | GPT-4o; o3-mini; deterministic exact-span | Measured on 20 clean and 20 fabricated drafts: unsafe-claim recall GPT-4o 0.05, o3-mini 0.95, exact-span 1.00. Exact-span in the default path; o3-mini in azure mode |
 | Routing thresholds | Hand-set; learned from labels; risk–coverage selection | Risk–coverage selection on a held-out split under explicit safety constraints (section 6.3) |
 | API security | Open local API; API keys + roles; external identity provider | API keys with five roles, object-level tenant checks, quotas, encryption at rest and retention (section 6.2). SSO is out of scope for a clean-checkout capstone |
 
@@ -204,13 +207,13 @@ The code follows the brief's three-layer split. Interface: FastAPI routes, the R
 
 ### 6.1 How it was built
 
-The repository follows the prescribed layout: `src/`, `prompts/`, `tests/`, `evaluation/`, `docs/`, `data/` and `.github/workflows/`. Python 3.12+ with FastAPI, scikit-learn and Pydantic; React 19 with Vite for the workspace; SQLite for persistence. Dependencies are pinned. A fresh install of the pins (including Chroma, fastembed, LangGraph and cryptography), the first-run model download, the architecture check, 83 tests and the React production build pass on a hosted GitHub Actions runner (run 43898531780).
+The repository follows the prescribed layout: `src/`, `prompts/`, `tests/`, `evaluation/`, `docs/`, `data/` and `.github/workflows/`. Python 3.12+ with FastAPI, scikit-learn and Pydantic; React 19 with Vite for the workspace; SQLite for persistence. Dependencies are pinned. A fresh install of the pins (including Chroma, fastembed, LangGraph and cryptography), the first-run model download, the architecture check, 90 tests and the React production build pass on a hosted GitHub Actions runner (run 43898531780).
 
 Three commands cover the assessment procedure:
 
 ```
 ./scripts/dev.sh                                  # API on :8001 + React on :5173
-./scripts/test.sh                                 # architecture check, 83 tests, UI build
+./scripts/test.sh                                 # architecture check, 90 tests, UI build
 ./scripts/batch.sh <input.json> <output-dir>      # unattended run + metrics + manifest
 ```
 
@@ -248,6 +251,24 @@ Hybrid search fuses the two: score = 0.5 × lexical cosine + 0.5 × dense cosine
 Local demo keys make the README demo work. They are documented as public and must be replaced for any real use.
 
 **ML lifecycle.** `model_registry.json` records each classifier head's dataset and split hashes, feature definition, hyperparameters, a platform-stable artifact fingerprint, calibration temperature, held-out report and promotion record. Every batch run compares its tickets with the training reference: predicted-intent PSI, text length, out-of-vocabulary rate, novelty share and confidence. It raises drift alerts against registered thresholds. Retraining is recommended only on a window of at least 200 tickets. A retrained model must pass `promotion_check` (no per-class precision loss, no extra protected false-auto, no larger subgroup gap, bounded latency) and be approved by a person.
+
+**Reliability and observability.**
+
+- Every graph node runs inside an OpenTelemetry span that carries identifiers, versions and timings but no ticket text.
+- Each node has a time budget in the policy file; a node that overruns escalates the ticket.
+- Batch runs write `traces.jsonl` and per-stage p50/p95 latency.
+- The customer message is written to a transactional outbox in the same commit as the decision. A dispatcher delivers it at most once, retrying with backoff and moving persistent failures to a dead-letter state.
+- Knowledge ingestion retries model and storage failures in the same way and parks exhausted work items for an operator.
+
+**Code structure.** The code follows the hexagonal layout the architecture specified:
+
+- `domain/` holds contracts, rules and guardrails;
+- `ports/` holds Protocol interfaces;
+- `adapters/` holds persistence, retrieval, ML and Azure;
+- `application/` holds the use cases;
+- `orchestration/` holds the graph and agents.
+
+`scripts/architecture_check.py`, run in CI, rejects imports that cross layers the wrong way.
 
 **Knowledge governance.** A changed article is staged, checked by Source Intake and Knowledge Steward, and quarantined if it contains secrets, instruction-like text, unknown IDs or permission changes. It must then be certified by a named reviewer and published atomically. Old citations remain resolvable by source version.
 
@@ -354,7 +375,7 @@ The hardest problem was not technical. The first complete version passed every a
 
 ### 6.6 What I would restructure
 
-The ticket flow is now a LangGraph graph, but its nodes share one mutable context object for simplicity. I would replace that with the typed `ContextEnvelope` design from the research, so each node receives only the fields it is allowed to see and can be tested in isolation. The handoff contracts exist as versioned JSON Schemas (`docs/schemas/`), but the prototype still passes some loosely typed dictionaries between steps. I would also move persistence behind a port so that PostgreSQL could replace SQLite for concurrent use.
+The ticket flow is a LangGraph graph inside a hexagonal layout, but its nodes still share one mutable context object for simplicity. I would replace that with the typed `ContextEnvelope` design from the research, so each node receives only the fields it is allowed to see and can be tested in isolation. The handoff contracts exist as versioned JSON Schemas (`docs/schemas/`), but the prototype still passes some loosely typed dictionaries between steps. I would also move persistence behind a port so that PostgreSQL could replace SQLite for concurrent use.
 
 <!-- pagebreak -->
 ## 7. Evaluation
@@ -507,12 +528,13 @@ The full governance pack is Appendix B (`docs/governance.md`). In summary:
 
 Automatic answers rose from 9.2% to 72.8% and escalation fell to 27.2%, with protected false-auto still zero.
 
-**A second revision (version 3).** A review against the research architecture then showed six designed components still unbuilt: Chroma with MiniLM dense retrieval, LangGraph orchestration, a reranker experiment, the security layer, an ML registry with drift monitoring, and rule conflict detection. The fluency gap had no tested remedy either. Building and measuring them changed the system again:
+**Second and third revisions (versions 3 and R3).** A review against the research architecture then showed six designed components still unbuilt: Chroma with MiniLM dense retrieval, LangGraph orchestration, a reranker experiment, the security layer, an ML registry with drift monitoring, and rule conflict detection. The fluency gap had no tested remedy either. Building and measuring them changed the system again:
 
 - Hybrid retrieval was selected over lexical, dense and reranked alternatives.
 - The fluency gap fell from 7.1 to 2.4 points.
 - Automatic answers rose to 80.4% (development) and 76.3% (validation), with wrong-article answers falling to 0.5% and 0%.
-- The reranker was the instructive negative result: built, measured, and not adopted because it added latency without improving retrieval.
+- The reranker was an instructive negative result: built, measured, and not adopted because it added latency without improving retrieval.
+- The verifier comparison was another. GPT-4o, the model the architecture first assigned to verification, passed 19 of 20 fabricated claims, while o3-mini caught 19 and the deterministic exact-span check caught all 20. The azure-mode verifier was switched to o3-mini.
 
 | Measure (development / validation) | Version 1 | Version 2 | Version 3 |
 |---|---|---|---|

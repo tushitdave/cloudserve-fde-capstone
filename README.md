@@ -49,6 +49,8 @@ For any non-local use, set `CLOUDSERVE_API_KEYS` to a JSON list of `{key, key_id
 - Retrieval strategies are compared by `PYTHONPATH=src:. python -m evaluation.retrieval_comparison` (lexical, dense, hybrid, hybrid + cross-encoder). The strategy and every threshold are then chosen on the held-out calibration split by `PYTHONPATH=src:. python -m evaluation.threshold_selection` (≈5 min), which writes `data/manifests/threshold_selection_v1.json`. Hybrid was selected; set `CLOUDSERVE_RETRIEVAL_STRATEGY=lexical` to force the fallback.
 - Routing rules live in `src/cloudserve/policy_v2.json` (policy v3). Each rule has a priority, effective dates, an approval status, interview evidence and examples. `cloudserve.policy_rules` refuses to load a table with conflicts or failing examples.
 - Kill switch: Overview page, `POST /v1/policy/kill-switch` (operator role), or `CLOUDSERVE_AUTO_SEND_DISABLED=1`. It takes effect on the next ticket.
+- Measured design choices: `evaluation/chunking_comparison.py`, `evaluation/classifier_comparison.py` and `evaluation/verifier_comparison.py` (needs Azure) write their results to `data/manifests/`.
+- Each batch run also writes `traces.jsonl` (OpenTelemetry spans, no raw text) and delivers decided messages through a transactional outbox (`outbox_deliveries.jsonl`).
 - ML registry and drift: `PYTHONPATH=src python -m cloudserve.ml_registry` writes `data/manifests/model_registry.json`. Every batch run reports drift against it.
 
 `CLOUDSERVE_MODEL_MODE=azure` optionally uses Azure GPT-4o for drafting and verification behind the same verifier and guardrails. Copy `.env.example` to `.env` only for that mode.
@@ -77,7 +79,7 @@ Ticket IDs are idempotent: the same input returns the stored result, and differe
 
 | Path | Contents |
 |---|---|
-| `src/cloudserve/` | Application code: `orchestration/ticket_graph.py` (LangGraph), `classifier.py`, `policy.py` + `policy_rules.py` + `policy_v2.json`, `retrieval.py` (Chroma/MiniLM/reranker), `knowledge*.py`, `agents.py`, `guardrails.py`, `security.py`, `encryption.py`, `storage.py`, `ml_registry.py`, `api/routes/` |
+| `src/cloudserve/` | Hexagonal layout: `domain/` (contracts, policy rules, guardrails), `ports/` (Protocol interfaces), `adapters/` (encrypted SQLite + outbox, Chroma/MiniLM + TF-IDF retrieval, calibrated classifier + model registry, Azure OpenAI), `application/use_cases/` (ticket processing, knowledge governance, message delivery), `orchestration/` (LangGraph graph + six agent roles), `observability/` (OpenTelemetry spans, time budgets), `api/` (routes, security). Old flat module paths remain as aliases. |
 | `prompts/` | Versioned prompt library and registry |
 | `tests/` | Test suite (one command: `scripts/test.sh`) |
 | `evaluation/` | Harness, quality report, retrieval comparison, threshold selection, gold seed and fixtures |

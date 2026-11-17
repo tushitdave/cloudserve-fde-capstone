@@ -10,10 +10,10 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from cloudserve.contracts import HumanResolution, TicketResult
-from cloudserve.security import Principal, require
-from cloudserve.service import DuplicateConflict, TicketService
-from cloudserve.storage import NotEscalated, ResolutionConflict
+from cloudserve.domain.models.contracts import HumanResolution, TicketResult
+from cloudserve.api.security import Principal, require
+from cloudserve.application.use_cases.process_ticket import DuplicateConflict, TicketService
+from cloudserve.adapters.persistence.ticket_store import NotEscalated, ResolutionConflict
 
 router = APIRouter(prefix="/v1")
 service = TicketService()

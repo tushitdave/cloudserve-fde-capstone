@@ -1,3 +1,6 @@
-# Bounded agent workflows
+# Orchestration
 
-Implement Source Intake, Knowledge Steward, Triage, Evidence, Answer and Verification agents here. Each agent has a typed input/output, tool allowlist, call/time budget and failure-to-escalation rule. The orchestration layer cannot publish a source or send a customer response.
+- `ticket_graph.py`: LangGraph state graph of the ticket pipeline, with OpenTelemetry spans and per-node time budgets.
+- `agents/roles.py`: the six bounded agent roles (Source Intake, Knowledge Steward, Triage, Evidence, Answer, Verification).
+
+Agents propose; the domain policy decides. Must not import the API layer.

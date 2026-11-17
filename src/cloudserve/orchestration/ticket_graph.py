@@ -23,10 +23,11 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from cloudserve import guardrails, policy
-from cloudserve.classifier import classify
-from cloudserve.contracts import Ticket
-from cloudserve.knowledge import resolve
+from cloudserve.domain.policies import guardrails
+from cloudserve.domain.policies import policy
+from cloudserve.adapters.ml.classifier import classify
+from cloudserve.domain.models.contracts import Ticket
+from cloudserve.adapters.retrieval.knowledge_index import resolve
 from cloudserve.observability.tracing import traced_stage, tracer
 
 

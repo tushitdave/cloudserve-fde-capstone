@@ -31,6 +31,16 @@ These scores are unscoped, over all 29 articles. Within the intent scope used at
 | **Hybrid (chosen)** | **84.5%** | **95.8%** | 2.3% | **3.6 pts** |
 | Hybrid + rerank | 84.5% | 95.8% | 2.3% | 21.4 pts |
 
+## Other measured design choices (calibration split)
+
+| Choice | Candidates | Result | Decision |
+|---|---|---|---|
+| Chunking (`chunking_comparison_v1.json`) | Section-aware; fixed 80 words with 20 overlap; parent-child | Resolution-restricted doc Hit@1 0.904 / 0.959 / 0.918; procedure intact 100% / **0%** / 100% | Keep section-aware: fixed windows break every procedure; parent-child gains 1 of 73 tickets with 2.5× the chunks |
+| Intent classifier (`classifier_comparison_v1.json`) | TF-IDF+LR+temperature; TF-IDF+LR raw; TF-IDF+LinearSVC; MiniLM+LR; GPT-4o zero-shot | Macro-F1 1.00 / 1.00 / 1.00 / 0.968 / 0.896; ECE 0.002 / 0.66 / 0.26 / 0.52 / n.a.; GPT-4o 459 ms per ticket | Keep production model; urgency ≈0.5 for every model (label noise) |
+| Claim verifier (`verifier_comparison_v1.json`, 20 clean + 20 fabricated drafts) | Exact-span; GPT-4o; o3-mini | Unsafe-claim recall 1.00 / **0.05** / 0.95; false blocks 0 / 0 / 0.05; median 0.1 ms / 2.3 s / 3.3 s | Exact-span in default mode; azure-mode verifier switched to o3-mini |
+
+Azure mode (GPT-4o drafting, o3-mini verification) answered and verified 3 of 3 documented tickets in a live smoke test, at 6–8 seconds per ticket. That is above the 3-second target, so extractive mode remains the default.
+
 ## Business outcomes (offline proxies)
 
 | Measure | CloudServe baseline | Target | v1 dev | v2 dev | **v3 dev** | **v3 validation** |

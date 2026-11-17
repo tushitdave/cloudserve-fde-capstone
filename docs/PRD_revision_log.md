@@ -78,6 +78,21 @@ Without dense retrieval, the 7.1-point fluency gap from R1 also had no tested mi
 
 **What it cost.** p95 local latency rose from 8 ms to about 206 ms, still well inside the 3-second target. The first run downloads about 160 MB of ONNX models. Without network the system falls back to lexical, sending 359 of 500 development tickets with protected false-auto still 0. Label-disagreement answers rose from 90 to 100 on development, again for human review.
 
+## Revision R3 — 17 November 2026: measured choices and operational controls
+
+The remaining designed components were built and the open design questions measured:
+
+- **Chunking:** section-aware kept. Fixed windows break 100% of procedures; parent-child gains 1 of 73 tickets.
+- **Classifier:** the production model is still best of five, including MiniLM and GPT-4o zero-shot.
+- **Verifier:** the azure-mode verifier changed from GPT-4o to **o3-mini**. On fabricated claims GPT-4o caught 1 of 20, o3-mini 19 of 20, and the deterministic exact-span check 20 of 20.
+- **New NFR-11 observability:** OpenTelemetry stage spans and per-agent time budgets; a node over budget escalates.
+- **New NFR-12 delivery:** transactional outbox with idempotent dispatch, backoff and dead-letter.
+- **FR-09 extended:** ingestion retry, dead-letter and operator retry.
+- **FR-03 extended:** o3-mini triage may resolve a low-confidence intent only to an option that fires no protective rule.
+- **Code structure:** hexagonal layers enforced by the architecture check.
+
+The default extractive path gave identical results before and after (0 differences on 500 tickets).
+
 ## Open revisions
 
 - (Closed by R2.) The non-fluent gap fell from 7.1 to 2.4 points with hybrid retrieval. The regional gap (Latin America, n=39) remains above 5 points.

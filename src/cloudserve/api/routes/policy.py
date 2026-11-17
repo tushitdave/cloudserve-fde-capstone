@@ -3,8 +3,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from cloudserve import policy
-from cloudserve.security import Principal, require
+from cloudserve.domain.policies import policy
+from cloudserve.api.security import Principal, require
 
 router = APIRouter(prefix="/v1/policy", tags=["policy"])
 

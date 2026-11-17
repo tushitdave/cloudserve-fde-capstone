@@ -103,7 +103,7 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 | [x] | P2-02 | Implement source-side contracts: `SourceRecord`, work item, canonical document, chunk, index manifest, lineage and quarantine. | Versioned schema files and round-trip tests. |
 | [x] | P2-03 | Normalize email, chat, documentation comment and forum tickets while preserving channel and original text. | One fixture per channel plus missing/empty/unicode cases. |
 | [ ] | P2-04 | Create trusted ticket/event/trace IDs, append-only state transitions and persistent store. | Duplicate/replay tests; no agent-minted trusted IDs. |
-| [ ] | P2-05 | Implement idempotency and outbox/delivery intent; terminal state is exactly one of `sent` or `escalated`. | Same key/payload repeats result; conflicting payload gets 409; no duplicate send. |
+| [x] | P2-05 | Implement idempotency and outbox/delivery intent; terminal state is exactly one of `sent` or `escalated`. | Same key/payload repeats result; conflicting payload gets 409; no duplicate send. |
 | [x] | P2-06 | Implement batch CLI taking arbitrary `--input` and `--output` paths and any compatible ticket count. | One command processes a mixed fixture unattended and writes one result per input. |
 | [x] | P2-07 | Add persistent decision and run manifest (model, prompt, KB, policy, schema versions). | Input IDs, terminal IDs and decision IDs reconcile 100%. |
 | [x] | P2-08 | Implement the first small full-path harness and explicit state-transition/stop-condition tests. | Mixed fixture completes unattended; each input has one terminal output and decision event. |
@@ -147,12 +147,12 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 
 | Done | ID | Task | Proof / completion condition |
 |---|---|---|---|
-| [ ] | P6-01 | Version prompts and tool allowlists for all six agents; specify per-agent input/output, timeout, call budget and failure behavior. | Prompt files, contract tests and trace spans; no unbounded loops. |
+| [x] | P6-01 | Version prompts and tool allowlists for all six agents; specify per-agent input/output, timeout, call budget and failure behavior. | Prompt files, contract tests and trace spans; no unbounded loops. |
 | [ ] | P6-02 | Implement Answer Agent using only authorized `EvidenceBundle` and claim-level source IDs. | `must_mention` coverage and fabricated-citation tests. |
-| [ ] | P6-03 | Implement Verification Agent for every generated draft; compare GPT-4o versus conditional o3-mini/NLI on human-labelled claims. | Unsafe-claim recall, false-block rate, latency and cost comparison. |
+| [x] | P6-03 | Implement Verification Agent for every generated draft; compare GPT-4o versus conditional o3-mini/NLI on human-labelled claims. | Unsafe-claim recall, false-block rate, latency and cost comparison. |
 | [x] | P6-04 | Implement independent deterministic validator for schema, exact citation/version, permission, PII/secrets and forbidden commitments. | Engineered unsafe response is blocked; findings recorded even on pass. |
 | [x] | P6-05 | Implement release gateway with policy + evidence + verification + validator gates. | Only validated eligible answers reach `sent`; failure becomes logged escalation. |
-| [ ] | P6-06 | Build `EscalationPacket` with summary, route/priority, known/unknown, source links, reasons and next verification step. | Support reviewer can act without rereading full trace; no unvalidated draft presented as fact. |
+| [x] | P6-06 | Build `EscalationPacket` with summary, route/priority, known/unknown, source links, reasons and next verification step. | Support reviewer can act without rereading full trace; no unvalidated draft presented as fact. |
 | [ ] | P6-07 | Add human resolution and correction events; reviewed lessons feed KB/rules only through approval. | Auditable HITL action; prior event preserved. |
 | [ ] | P6-08 | Implement typed `ContextEnvelope` and central context assembler for every agent call. | Trusted/untrusted separation, permission/version checks, token budget and truncation/abstention fixtures pass. |
 
@@ -161,8 +161,8 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 | Done | ID | Task | Proof / completion condition |
 |---|---|---|---|
 | [x] | P7-01 | Implement `POST /v1/tickets`, `GET /v1/tickets/{id}` and restricted decision endpoint. | OpenAPI contract; auth, idempotency, status and object authorization tests. |
-| [ ] | P7-02 | Implement escalation queue/detail/resolve and customer/agent feedback endpoints. | Role checks, pagination, idempotent resolution and audit events. |
-| [ ] | P7-03 | Implement knowledge jobs/source/index endpoints and operator approval actions. | Quarantine/publish status visible; no unauthorized source text. |
+| [x] | P7-02 | Implement escalation queue/detail/resolve and customer/agent feedback endpoints. | Role checks, pagination, idempotent resolution and audit events. |
+| [x] | P7-03 | Implement knowledge jobs/source/index endpoints and operator approval actions. | Quarantine/publish status visible; no unauthorized source text. |
 | [ ] | P7-04 | Build React customer view: ticket status, automated answer with exact citations, or honest human-handoff state. | Browser test for sent and escalated states; no invented SLA promise. |
 | [ ] | P7-05 | Build React support desk: queue, ticket, evidence, uncertainty, guardrail reason and human actions. | Handoff information readable and edits audited. |
 | [ ] | P7-06 | Build React knowledge operations: source review, lineage, quarantine and active index. | Operator can trace cited passage to approved version; cannot bypass approval. |
@@ -187,8 +187,8 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 
 | Done | ID | Task | Proof / completion condition |
 |---|---|---|---|
-| [ ] | P9-01 | Add structured audit and traces for every stage, model/prompt/KB/policy version, reason, timing, cost and terminal state. | Trace-to-ticket reconstruction without raw text/keys in general metrics. |
-| [ ] | P9-02 | Add bounded retries, rate-limit backoff, timeouts, concurrency limits and failure-to-escalation behavior. | Fault-injection run completes with all IDs reconciled. |
+| [x] | P9-01 | Add structured audit and traces for every stage, model/prompt/KB/policy version, reason, timing, cost and terminal state. | Trace-to-ticket reconstruction without raw text/keys in general metrics. |
+| [x] | P9-02 | Add bounded retries, rate-limit backoff, timeouts, concurrency limits and failure-to-escalation behavior. | Fault-injection run completes with all IDs reconciled. |
 | [x] | P9-03 | Enforce API identity, tenant/role/object authorization, source permissions, cache partitioning and secrets handling. | Cross-tenant negative tests; secret scan passes. |
 | [ ] | P9-04 | Add liveness/readiness, logs/metrics, alerts and operator runbook for outage, bad index, policy rollback and PII incident. | Induced failure fires alert and documented recovery steps work. |
 | [ ] | P9-05 | Run performance and cost profile across answer and escalation paths; benchmark conditional o3-mini use. | p50/p95, token/cost and timeout rates by stage; decision on model routing. |
@@ -211,17 +211,17 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 | Criterion | Required proof | Linked tasks | State |
 |---|---|---|---|
 | A1 clean checkout | README commands succeed in fresh directory | P0-01–07, P9-06 | Open |
-| A2 four channels | One normalized ticket from each channel | P2-03 | Open |
+| A2 four channels | One normalized ticket from each channel | P2-03 | Local + CI pass: `test_four_channel_normalization_preserves_original_text` |
 | A3 intent, urgency, numeric confidence | Every result carries both labels and `[0,1]` scores | P5-01–03 | Local pass: calibrated on held-out split (intent ECE 0.002) |
 | A4 real retrieval passages | Search IDs resolve to exact supplied corpus text | P3-01–07, P4-01–05 | Local pass: hybrid Chroma/MiniLM + lexical, IDs and versions resolve; lexical fallback logged |
 | A5 deterministic threshold routing | Same input/version yields same route/reason | P5-04–07 | Local pass: thresholds from recorded risk–coverage selection; repeat test |
-| A6 resolvable citations | Draft claims cite passages actually retrieved | P4-06, P6-02, P6-04 | Open |
+| A6 resolvable citations | Draft claims cite passages actually retrieved | P4-06, P6-02, P6-04 | Local + CI pass: every extractive line verified as an exact span of a retrieved passage; 100% citation resolution |
 | A7 blocking guardrail | Engineered unsafe response never sent | P6-03–05, P8-04 | Local pass: instruction-override ticket and injected unsafe drafts blocked |
 | A8 persistent decision log | Logs and ticket totals reconcile | P2-04–07, P9-01 | Local pass: Governance-format `decision` event per ticket; P9-01 cost/timing open |
-| A9 unattended full set | Arbitrary-path run finishes with no missing IDs | P2-06, P8-06, P8-08 | Open |
-| A10 automatic metrics | Report emitted by same run | P8-05–07 | Open |
-| A11 failure handling | No hit, timeout, outage, rate limit, malformed input all terminal | P2-03, P6-06, P8-04, P9-02 | Local pass; live provider and persistence recovery open |
-| A12 one-command tests | Documented command passes from clean checkout | P0-04–05, P9-06 | Open |
+| A9 unattended full set | Arbitrary-path run finishes with no missing IDs | P2-06, P8-06, P8-08 | Local pass: 500/80 and reordered/malformed unseen file reconcile 100% |
+| A10 automatic metrics | Report emitted by same run | P8-05–07 | Local pass: `metrics.json` with business, technical, governance, fairness, drift, stage latency and outbox blocks |
+| A11 failure handling | No hit, timeout, outage, rate limit, malformed input all terminal | P2-03, P6-06, P8-04, P9-02 | Local pass: injected outages, per-agent time budgets, lexical fallback, outbox and ingestion retry/dead-letter |
+| A12 one-command tests | Documented command passes from clean checkout | P0-04–05, P9-06 | CI pass: `scripts/test.sh` equivalent on fresh Python 3.12 runner (90 tests) |
 
 ## 7. Evidence artifact register
 
@@ -419,3 +419,20 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 - **Still open:** P4-01 (Azure ada-002 replaced by MiniLM for the measured index; ada-002 stays an optional code path) and P4-04 (passage-level human gold).
 - **Proof:** local `scripts/test.sh` with `.venv` (Python 3.12) gave **83 passed** and the React build. Batches `development-policy-v3`: 402/98, safe-auto recall 0.968, wrong article 0.5%, protected 0, reconciliation true. `validation-policy-v3`: 61/19, recall 0.938, wrong article 0, protected 0. `development-lexical-fallback`: 359/141, protected 0. Fluency gap on development is 2.4 points (was 7.1). p95 is 206 ms.
 - **CI:** the first push failed one test because the registry hash differed across OS float noise. It was fixed by rounding the fingerprint and re-run.
+
+### Remaining architecture items (17 November 2026)
+
+- **Built:**
+  - OpenTelemetry spans for every LangGraph node, carrying only identifiers and timings, written to `traces.jsonl`. Each node has a time budget in `policy_v2.json`; a node over budget escalates the ticket as `AgentTimeout`. Stage p50/p95 are in `metrics.json`.
+  - Transactional outbox: the delivery intent is written in the decision transaction. Dispatch is idempotent, with backoff and dead-letter (500/500 delivered in the dev run).
+  - Ingestion retry with exponential backoff and jitter, a `dead_letter` state and an operator retry endpoint.
+  - GPT-4o Knowledge Steward review and GPT-4o Evidence query planner (azure mode). o3-mini Triage may continue only to an option that fires no protective rule.
+  - Hexagonal relocation into `domain/`, `ports/` (Protocols), `adapters/`, `application/` and `orchestration/`. Old paths alias the moved module objects, and `architecture_check.py` enforces the layer rules.
+- **Measured (calibration split):**
+  - `chunking_comparison_v1.json`: fixed 80/20 windows break every procedure; parent-child is +1/73 → keep section-aware.
+  - `classifier_comparison_v1.json`: production TF-IDF + LR + temperature is best (macro-F1 1.00, ECE 0.002); MiniLM + LR 0.968; GPT-4o zero-shot 0.896 at 459 ms.
+  - `verifier_comparison_v1.json`: unsafe-claim recall exact-span 1.00, o3-mini 0.95, GPT-4o 0.05 → the azure-mode verifier is now o3-mini.
+- **Live azure-mode smoke:** 3/3 documented tickets were answered and verified, at 6–8 s per ticket (above the 3 s target; extractive stays the default).
+- **Equivalence:** after the restructure, a 500-ticket replay gave 0 differences from policy v3.
+- **Checked:** P2-05, P6-01, P6-03, P6-06, P7-02, P7-03, P9-01, P9-02. The A-matrix has been updated with proofs.
+- **Proof:** **90 passed** locally; the architecture check passes.

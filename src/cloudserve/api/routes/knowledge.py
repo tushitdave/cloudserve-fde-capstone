@@ -3,12 +3,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from cloudserve.knowledge import index, manifest, passages_from_documents, resolve
-from cloudserve.knowledge_pipeline import KnowledgeService
-from cloudserve.knowledge_store import KnowledgeConflict, _content_hash
-from cloudserve.storage import Store
+from cloudserve.adapters.retrieval.knowledge_index import index, manifest, passages_from_documents, resolve
+from cloudserve.application.use_cases.govern_knowledge import KnowledgeService
+from cloudserve.adapters.persistence.knowledge_store import KnowledgeConflict, _content_hash
+from cloudserve.adapters.persistence.ticket_store import Store
 from cloudserve.config import runtime_dir
-from cloudserve.security import require
+from cloudserve.api.security import require
 
 router = APIRouter(prefix="/v1/knowledge", tags=["knowledge"])
 service = KnowledgeService()
