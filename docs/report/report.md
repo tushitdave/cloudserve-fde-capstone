@@ -207,7 +207,7 @@ The code follows the brief's three-layer split. Interface: FastAPI routes, the R
 
 ### 6.1 How it was built
 
-The repository follows the prescribed layout: `src/`, `prompts/`, `tests/`, `evaluation/`, `docs/`, `data/` and `.github/workflows/`. Python 3.12+ with FastAPI, scikit-learn and Pydantic; React 19 with Vite for the workspace; SQLite for persistence. Dependencies are pinned. A fresh install of the pins (including Chroma, fastembed, LangGraph and cryptography), the first-run model download, the architecture check, 90 tests and the React production build pass on a hosted GitHub Actions runner (run 43898531780).
+The repository follows the prescribed layout: `src/`, `prompts/`, `tests/`, `evaluation/`, `docs/`, `data/` and `.github/workflows/`. Python 3.12+ with FastAPI, scikit-learn and Pydantic; React 19 with Vite for the workspace; SQLite for persistence. Dependencies are pinned. A fresh install of the pins (including Chroma, fastembed, LangGraph and cryptography), the first-run model download, the architecture check, 90 tests and the React production build pass on a hosted GitHub Actions runner (run 44018697248).
 
 Three commands cover the assessment procedure:
 

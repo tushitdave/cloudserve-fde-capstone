@@ -435,4 +435,4 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 - **Live azure-mode smoke:** 3/3 documented tickets were answered and verified, at 6–8 s per ticket (above the 3 s target; extractive stays the default).
 - **Equivalence:** after the restructure, a 500-ticket replay gave 0 differences from policy v3.
 - **Checked:** P2-05, P6-01, P6-03, P6-06, P7-02, P7-03, P9-01, P9-02. The A-matrix has been updated with proofs.
-- **Proof:** **90 passed** locally; the architecture check passes.
+- **Proof:** **90 passed** locally and in hosted CI run 44018697248; the architecture check passes.

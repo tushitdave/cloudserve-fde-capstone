@@ -28,7 +28,7 @@
 | B-09 | Guardrails and validation | 3 | Must | B-08 | Five checks recorded on every answer; engineered ticket blocked | Done |
 | B-10 | Decision logging | 2 | Must | B-07 | Governance-format record per ticket; reconciliation | Done |
 | B-11 | First full unattended run (THE GATE) | 1 | Must | B-05, B-09 | 500 + 80 processed, 100% reconciled | Done (16 Nov) |
-| B-12 | Monitoring and dashboards | 4 | Could | B-10 | Prometheus/Grafana | **Dropped** (section 5) |
+| B-12 | Monitoring and dashboards | 4 | Could | B-10 | Prometheus/Grafana | Partly: OpenTelemetry spans, stage latency and drift per run; Prometheus/Grafana dropped |
 | B-13 | Continuous integration | 1 | Should | B-11 | Green hosted run | Done |
 | B-14 | Fairness audit | 2 | Must | B-11 | Segment table with counts | Done (`docs/governance.md`) |
 | B-15 | Report, video and submission package | 10 | Must | all | Four-part archive | In progress |
