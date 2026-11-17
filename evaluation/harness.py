@@ -11,6 +11,7 @@ from pathlib import Path
 from cloudserve.config import runtime_dir
 from cloudserve.knowledge import manifest as knowledge_manifest
 from cloudserve.ml_registry import drift_report
+from cloudserve.outbox import FileChannelSender, dispatch
 from cloudserve.observability.tracing import finished_spans, write_jsonl
 from cloudserve.retrieval import warm_up
 from cloudserve.policy import NOVELTY_THRESHOLD, POLICY_VERSION, kill_switch_state, thresholds_applied
@@ -181,6 +182,7 @@ def run(input_path: Path, output_path: Path, mode: str = "extractive") -> dict:
         results.append(result.model_dump())
     metrics = score(rows, results)
     metrics["decisions_logged"] = service.store.counts()["decisions_logged"]
+    metrics["outbox"] = dispatch(service.store, FileChannelSender(output_path / "outbox_deliveries.jsonl"))
     spans = finished_spans()
     write_jsonl(output_path / "traces.jsonl", spans)
     by_stage = defaultdict(list)

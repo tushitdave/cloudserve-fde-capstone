@@ -111,7 +111,7 @@ class TicketService:
         )
         events.append(("decision", _decision_record(result, ticket, payload_hash, passages, evidence_score, chosen_mode, self, run.stage_timings_ms)))
         events.append(("terminal", {"state": result.terminal_state, "reason_codes": decision.reason_codes, "guardrail_findings": findings}))
-        self.store.save(payload_hash, result, events, tenant_id=ticket.customer_id)
+        self.store.save(payload_hash, result, events, tenant_id=ticket.customer_id, channel=ticket.channel)
         return result
 
 

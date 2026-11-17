@@ -35,6 +35,7 @@ class Store:
             db.execute("CREATE TABLE IF NOT EXISTS events (event_id INTEGER PRIMARY KEY AUTOINCREMENT, ticket_id TEXT NOT NULL, trace_id TEXT NOT NULL, stage TEXT NOT NULL, payload_json TEXT NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)")
             db.execute("CREATE TABLE IF NOT EXISTS feedback (feedback_id INTEGER PRIMARY KEY AUTOINCREMENT, ticket_id TEXT NOT NULL, rating TEXT NOT NULL, comment TEXT NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)")
             db.execute("CREATE TABLE IF NOT EXISTS human_resolutions (ticket_id TEXT PRIMARY KEY, payload_json TEXT NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)")
+            db.execute("CREATE TABLE IF NOT EXISTS outbox (delivery_id TEXT PRIMARY KEY, ticket_id TEXT NOT NULL, channel TEXT NOT NULL, kind TEXT NOT NULL, payload_json TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at REAL NOT NULL DEFAULT 0, last_error TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, delivered_at TEXT)")
             columns = {row[1] for row in db.execute("PRAGMA table_info(tickets)")}
             if "tenant_id" not in columns:
                 db.execute("ALTER TABLE tickets ADD COLUMN tenant_id TEXT")
@@ -65,7 +66,8 @@ class Store:
             row = db.execute("SELECT tenant_id FROM tickets WHERE ticket_id=?", (ticket_id,)).fetchone()
         return row[0] if row else None
 
-    def save(self, input_hash: str, result: TicketResult, events: list[tuple[str, dict]], tenant_id: str = "anonymous") -> None:
+    def save(self, input_hash: str, result: TicketResult, events: list[tuple[str, dict]], tenant_id: str = "anonymous",
+             channel: str = "chat") -> None:
         now = datetime.now(timezone.utc).isoformat()
         with self._connect() as db:
             db.execute("INSERT INTO tickets(ticket_id,input_hash,result_json,tenant_id,created_at) VALUES(?,?,?,?,?)",
@@ -73,6 +75,37 @@ class Store:
             db.executemany("INSERT INTO events(ticket_id,trace_id,stage,payload_json) VALUES(?,?,?,?)", [
                 (result.ticket_id, result.trace_id, stage, encrypt(json.dumps(payload, default=str))) for stage, payload in events
             ])
+            # Transactional outbox: the delivery intent commits with the decision, so a crash can
+            # neither send without a logged decision nor lose a decided message.
+            kind = "answer" if result.terminal_state == "sent" else "handoff_acknowledgement"
+            db.execute("INSERT OR IGNORE INTO outbox(delivery_id,ticket_id,channel,kind,payload_json) VALUES(?,?,?,?,?)",
+                       (f"{result.ticket_id}:customer_message", result.ticket_id, channel, kind,
+                        encrypt(json.dumps({"ticket_id": result.ticket_id, "trace_id": result.trace_id,
+                                            "message": result.customer_message,
+                                            "citations": [c.passage_id for c in result.citations]}))))
+
+    # ------------------------------------------------------------ outbox
+    def due_deliveries(self, now: float, limit: int = 100) -> list[dict]:
+        with self._connect() as db:
+            rows = db.execute("SELECT delivery_id,ticket_id,channel,kind,payload_json,attempts FROM outbox WHERE status='pending' AND next_attempt_at<=? ORDER BY rowid LIMIT ?", (now, limit)).fetchall()
+        return [{"delivery_id": r[0], "ticket_id": r[1], "channel": r[2], "kind": r[3], "payload": json.loads(decrypt(r[4])), "attempts": r[5]} for r in rows]
+
+    def mark_delivered(self, delivery_id: str) -> bool:
+        """Idempotent: returns False if it was already delivered (no second send is recorded)."""
+        with self._connect() as db:
+            cur = db.execute("UPDATE outbox SET status='delivered', attempts=attempts+1, delivered_at=? WHERE delivery_id=? AND status='pending'",
+                             (datetime.now(timezone.utc).isoformat(), delivery_id))
+            return cur.rowcount == 1
+
+    def mark_failed(self, delivery_id: str, error: str, next_attempt_at: float, dead: bool) -> None:
+        with self._connect() as db:
+            db.execute("UPDATE outbox SET attempts=attempts+1, last_error=?, next_attempt_at=?, status=? WHERE delivery_id=? AND status='pending'",
+                       (error[:200], next_attempt_at, "dead_letter" if dead else "pending", delivery_id))
+
+    def outbox_counts(self) -> dict:
+        with self._connect() as db:
+            rows = db.execute("SELECT status, COUNT(*) FROM outbox GROUP BY status").fetchall()
+        return {status: count for status, count in rows}
 
     def list_results(self, limit: int = 100, state: str | None = None, pending_only: bool = False,
                      tenant_id: str | None = None) -> list[TicketResult]:
