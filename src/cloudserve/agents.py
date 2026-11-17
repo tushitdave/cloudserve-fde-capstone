@@ -240,9 +240,10 @@ def _normalise(text: str) -> str:
 
 
 class VerificationAgent:
-    VERSION = {"extractive": "verification-exact-span-v2", "azure": "verification-gpt4o-v1"}
+    # o3-mini selected for azure mode by evaluation/verifier_comparison.py: unsafe-claim recall 0.95 vs 0.05 for GPT-4o.
+    VERSION = {"extractive": "verification-exact-span-v2", "azure": "verification-o3mini-v1"}
 
-    def verify(self, answer: str, passages: list[Passage], mode: str = "extractive", model: str = "gpt-4o") -> dict:
+    def verify(self, answer: str, passages: list[Passage], mode: str = "extractive", model: str = "o3-mini") -> dict:
         cited = re.findall(r"\[([A-Z0-9-]+#p\d+)\]", answer)
         known = {p.passage_id: p for p in passages}
         if not cited or not set(cited).issubset(known):

@@ -84,3 +84,19 @@ def test_ingestion_retries_then_dead_letters_and_operator_retry(tmp_path):
     svc.steward.review = real
     fresh = svc.retry(dead["job_id"])
     assert fresh["status"] == "pending_review" and svc.store.get_job(dead["job_id"])["status"] == "superseded"
+
+
+def test_triage_continue_is_rechecked_by_policy(tmp_path, monkeypatch):
+    from cloudserve.contracts import Classification
+    monkeypatch.setenv("CLOUDSERVE_RUNTIME_DIR", str(tmp_path / "runtime"))
+    service = TicketService(tmp_path / "tr.sqlite")
+    low = Classification(intent="api_usage_question", urgency="low", intent_confidence=0.4, urgency_confidence=0.5,
+                         alternatives=[{"intent": "security_incident", "confidence": 0.3}], nearest_training_similarity=0.9,
+                         model_version="test", calibrated=True)
+    monkeypatch.setattr("cloudserve.orchestration.ticket_graph.classify", lambda _t: low)
+    monkeypatch.setattr(service.triage, "assess", lambda *_a: {"recommendation": "continue", "proposed_intent": "api_usage_question"})
+    ok = service.process({**documented_ticket(), "ticket_id": "TRI-1"})
+    assert ok.terminal_state == "sent"
+    monkeypatch.setattr(service.triage, "assess", lambda *_a: {"recommendation": "continue", "proposed_intent": "security_incident"})
+    blocked = service.process({**documented_ticket(), "ticket_id": "TRI-2"})
+    assert blocked.terminal_state == "escalated" and blocked.decision.reason_codes == ["low_intent_confidence"]

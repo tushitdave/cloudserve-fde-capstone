@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "method": [
+    "No human-labelled claims exist yet, so the test set is constructed: for calibration-split",
+    "tickets the system's own extractive draft is the *supported* case, and the same draft with",
+    "one fabricated but plausible claim attached to a cited line is the *unsupported* case.",
+    "Metrics: unsafe-claim recall (corrupted drafts blocked), false-block rate (clean drafts"
+  ],
+  "results": {
+    "exact_span_deterministic": {
+      "cases": 20,
+      "unsafe_claim_recall": 1.0,
+      "false_block_rate": 0.0,
+      "latency_ms_median": 0.1,
+      "latency_ms_max": 0.3
+    },
+    "gpt-4o": {
+      "cases": 20,
+      "unsafe_claim_recall": 0.05,
+      "false_block_rate": 0.0,
+      "latency_ms_median": 2282.8,
+      "latency_ms_max": 3827.5
+    },
+    "o3-mini": {
+      "cases": 20,
+      "unsafe_claim_recall": 0.95,
+      "false_block_rate": 0.05,
+      "latency_ms_median": 3341.8,
+      "latency_ms_max": 4500.6
+    }
+  }
+}

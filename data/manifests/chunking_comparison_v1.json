@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "selection_set": "development calibration split (answerable)",
+  "tickets": 73,
+  "scorer": "hybrid 0.5 TF-IDF + 0.5 all-MiniLM-L6-v2",
+  "strategies": {
+    "section": {
+      "any_unit": {
+        "chunks": 145,
+        "mean_chunk_words": 40.3,
+        "doc_hit_at_1": 0.9589,
+        "resolution_hit_at_1": 0.2055,
+        "procedure_intact_given_resolution_hit": 1.0,
+        "procedure_intact_overall": 0.2055
+      },
+      "resolution_units_only (production rule)": {
+        "chunks": 145,
+        "mean_chunk_words": 40.3,
+        "doc_hit_at_1": 0.9041,
+        "resolution_hit_at_1": 0.9041,
+        "procedure_intact_given_resolution_hit": 1.0,
+        "procedure_intact_overall": 0.9041
+      }
+    },
+    "fixed_80_20": {
+      "any_unit": {
+        "chunks": 88,
+        "mean_chunk_words": 77.2,
+        "doc_hit_at_1": 0.9589,
+        "resolution_hit_at_1": 0.7397,
+        "procedure_intact_given_resolution_hit": 0.0,
+        "procedure_intact_overall": 0.0
+      },
+      "resolution_units_only (production rule)": {
+        "chunks": 88,
+        "mean_chunk_words": 77.2,
+        "doc_hit_at_1": 0.9589,
+        "resolution_hit_at_1": 0.9589,
+        "procedure_intact_given_resolution_hit": 0.0,
+        "procedure_intact_overall": 0.0
+      }
+    },
+    "parent_child": {
+      "any_unit": {
+        "chunks": 371,
+        "mean_chunk_words": 19.9,
+        "doc_hit_at_1": 0.9589,
+        "resolution_hit_at_1": 0.2055,
+        "procedure_intact_given_resolution_hit": 1.0,
+        "procedure_intact_overall": 0.2055
+      },
+      "resolution_units_only (production rule)": {
+        "chunks": 371,
+        "mean_chunk_words": 19.9,
+        "doc_hit_at_1": 0.9178,
+        "resolution_hit_at_1": 0.9178,
+        "procedure_intact_given_resolution_hit": 1.0,
+        "procedure_intact_overall": 0.9178
+      }
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0",
+  "train_rows": 397,
+  "test_set": "development calibration split",
+  "test_rows": 103,
+  "visible_validation_used": false,
+  "results": {
+    "tfidf_logreg_temperature (production)": {
+      "intent": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "macro_precision": 1.0,
+        "ece": 0.0016,
+        "latency_ms_per_ticket": 0.02,
+        "mean_confidence_on_out_of_scope": 0.7563
+      },
+      "urgency": {
+        "accuracy": 0.5049,
+        "macro_f1": 0.5225,
+        "macro_precision": 0.5419,
+        "ece": 0.0554,
+        "latency_ms_per_ticket": 0.02,
+        "mean_confidence_on_out_of_scope": 0.402
+      }
+    },
+    "tfidf_logreg_uncalibrated": {
+      "intent": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "macro_precision": 1.0,
+        "ece": 0.6615,
+        "latency_ms_per_ticket": 0.02,
+        "mean_confidence_on_out_of_scope": 0.078
+      },
+      "urgency": {
+        "accuracy": 0.5049,
+        "macro_f1": 0.5225,
+        "macro_precision": 0.5419,
+        "ece": 0.0516,
+        "latency_ms_per_ticket": 0.02,
+        "mean_confidence_on_out_of_scope": 0.4056
+      }
+    },
+    "tfidf_linearsvc_sigmoid": {
+      "intent": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "macro_precision": 1.0,
+        "ece": 0.2581,
+        "latency_ms_per_ticket": 0.04,
+        "mean_confidence_on_out_of_scope": 0.1547
+      },
+      "urgency": {
+        "accuracy": 0.5728,
+        "macro_f1": 0.3869,
+        "macro_precision": 0.409,
+        "ece": 0.1083,
+        "latency_ms_per_ticket": 0.03,
+        "mean_confidence_on_out_of_scope": 0.4552
+      }
+    },
+    "minilm_embedding_logreg": {
+      "intent": {
+        "accuracy": 0.9806,
+        "macro_f1": 0.9682,
+        "macro_precision": 0.9848,
+        "ece": 0.5175,
+        "latency_ms_per_ticket": 28.23,
+        "mean_confidence_on_out_of_scope": 0.1239
+      },
+      "urgency": {
+        "accuracy": 0.466,
+        "macro_f1": 0.4664,
+        "macro_precision": 0.4816,
+        "ece": 0.053,
+        "latency_ms_per_ticket": 30.48,
+        "mean_confidence_on_out_of_scope": 0.4641
+      }
+    },
+    "gpt4o_zero_shot": {
+      "intent": {
+        "accuracy": 0.9417,
+        "macro_f1": 0.8959,
+        "macro_precision": 0.9246,
+        "ece": null,
+        "latency_ms_per_ticket": 458.92
+      },
+      "urgency": {
+        "accuracy": 0.4563,
+        "macro_f1": 0.417,
+        "macro_precision": 0.4506,
+        "ece": null,
+        "latency_ms_per_ticket": 288.86
+      }
+    }
+  },
+  "decision": "Keep the production TF-IDF + logistic regression with temperature scaling unless a candidate is better on macro-F1 without worse calibration or out-of-scope confidence, at acceptable latency (ml_registry.promotion_check)."
+}

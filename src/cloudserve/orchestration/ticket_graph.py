@@ -52,6 +52,7 @@ class TicketRun:
     evidence_score: float = 0.0
     next: str = ""
     trace_id: str = ""
+    triage_resolved: bool = False
     stage_timings_ms: dict = field(default_factory=dict)
 
 
@@ -93,7 +94,15 @@ def policy_gate_node(state: GraphState) -> GraphState:
 def triage_node(state: GraphState) -> GraphState:
     run = state["run"]
     run.steps.append("Triage Agent")
-    run.events.append(("triage_reviewed", run.service.triage.assess(run.ticket, run.classification, run.mode)))
+    assessment = run.service.triage.assess(run.ticket, run.classification, run.mode)
+    run.events.append(("triage_reviewed", assessment))
+    proposed = assessment.get("proposed_intent")
+    if assessment.get("recommendation") == "continue" and proposed:
+        adjudicated = run.classification.model_copy(update={"intent": proposed})
+        # The agent's proposal is re-checked by code: any protective rule on the proposed intent still escalates.
+        if not policy.fired_rules(run.ticket, adjudicated) and not policy.kill_switch_state()["active"]:
+            run.classification, run.triage_resolved, run.next = adjudicated, True, "evidence"
+            return state
     run.decision, run.next = policy.route(run.ticket, run.classification), "escalate"
     return state
 
@@ -111,7 +120,7 @@ def evidence_node(state: GraphState) -> GraphState:
                                     "reason": bundle.reason, "queries": bundle.queries}))
     run.decision = policy.route(run.ticket, run.classification, run.evidence_score,
                                 has_approved_article=bundle.reason != "no_approved_article",
-                                retrieval_strategy=bundle.retrieval_strategy)
+                                retrieval_strategy=bundle.retrieval_strategy, triage_resolved=run.triage_resolved)
     run.next = "answer" if run.decision.action == "answer" else "escalate"
     return state
 

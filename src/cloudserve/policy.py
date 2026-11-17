@@ -115,7 +115,7 @@ def escalate(code: str, reason: str, threshold: float | None = None, rule_ids: l
 
 
 def route(ticket: Ticket, classification: Classification, evidence_score: float = 0, has_approved_article: bool = True,
-          retrieval_strategy: str = "lexical") -> Decision:
+          retrieval_strategy: str = "lexical", triage_resolved: bool = False) -> Decision:
     """Deterministic: identical ticket, classification and policy version give an identical decision."""
     if kill_switch_state()["active"]:
         rule = POLICY["rules"][0]
@@ -129,7 +129,7 @@ def route(ticket: Ticket, classification: Classification, evidence_score: float 
     if classification.nearest_training_similarity < NOVELTY_THRESHOLD:
         return escalate("novel_request", "The request does not resemble any request type the system has learnt; new issues go to a person.",
                         threshold=NOVELTY_THRESHOLD)
-    if classification.intent_confidence < AUTO_THRESHOLD:
+    if classification.intent_confidence < AUTO_THRESHOLD and not triage_resolved:
         return escalate("low_intent_confidence", f"The ticket type is uncertain (confidence {classification.intent_confidence:.2f} is below {AUTO_THRESHOLD:.2f}).")
     if not has_approved_article:
         return escalate("no_approved_article", "No approved article covers this type of request.")
