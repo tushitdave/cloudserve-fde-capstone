@@ -82,6 +82,7 @@ class HumanResolution(BaseModel):
 class TicketResult(BaseModel):
     ticket_id: str
     trace_id: str
+    channel: Literal["email", "chat", "docs_comment", "forum"] | None = None
     terminal_state: Literal["sent", "escalated"]
     customer_message: str
     classification: Classification
@@ -131,6 +132,7 @@ class EvidenceBundle(BaseModel):
     document_confidence: float = Field(default=0, ge=0, le=1)
     top_score: float = 0
     supporting_passages: list[Passage] = []
+    graph_traversal: dict = {}
 
 
 class QueryPlan(BaseModel):
@@ -139,6 +141,7 @@ class QueryPlan(BaseModel):
     path: Literal["rule", "approved_document", "human"]
     query: str
     allowed_doc_ids: list[str]
+    seed_doc_ids: list[str] = []
     max_searches: int = Field(ge=0, le=2)
     source_revision: int = Field(ge=0)
 

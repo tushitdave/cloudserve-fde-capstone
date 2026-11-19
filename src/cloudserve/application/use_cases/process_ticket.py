@@ -102,7 +102,8 @@ class TicketService:
             candidate_passage_ids=[p.passage_id for p in passages],
         )
         result = TicketResult(
-            ticket_id=ticket_id, trace_id=trace_id, terminal_state="sent" if sent else "escalated",
+            ticket_id=ticket_id, trace_id=trace_id, channel=ticket.channel,
+            terminal_state="sent" if sent else "escalated",
             customer_message=answer if sent else ("We have passed your request to a support specialist, together with the details you sent. "
                                                   "You do not need to resend anything; the specialist will reply on this ticket."),
             classification=classification, decision=decision, citations=citations if sent else [],

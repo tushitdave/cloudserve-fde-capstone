@@ -12,6 +12,7 @@ def test_four_channel_normalization_preserves_original_text(tmp_path):
         source = {"ticket_id": f"FIDELITY-{channel}", "channel": channel,
                   "subject": "Ação / 設定", "body": "I cannot sign in — कृपया मदद करें 🚀"}
         result = service.process(source)
+        assert result.channel == channel
         normalized = service.store.events(result.ticket_id)[0]
         assert normalized["stage"] == "normalized"
         assert normalized["payload"]["channel"] == source["channel"]

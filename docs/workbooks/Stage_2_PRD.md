@@ -62,7 +62,7 @@ CloudServe's support team is not short of answers; it is short of time to find t
 | Roadmap or timing answers | No approved source (Ines) | Published roadmap content with an owner |
 | CRM or live channel integration | Not supplied; clean-checkout gate | A pilot with real channels |
 | New documentation authoring | Content is adequate (1.D1) | Gap analysis from escalations |
-| GraphRAG or ontology | 29 articles; no multi-hop questions | Labelled cross-document questions |
+| Entity GraphRAG / auto-ontology | Bounded curated document GraphRAG is implemented; 29 articles still lack labelled multi-hop entity questions | Human-labelled cross-document task and measured gain justify entity ontology |
 
 ## 7. Assumptions and their consequences
 

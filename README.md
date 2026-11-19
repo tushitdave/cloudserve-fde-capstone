@@ -1,6 +1,6 @@
 # CloudServe support intelligence
 
-CloudServe is a governed support-automation system for the FDE capstone. It classifies support tickets from four channels and retrieves evidence from 29 approved articles with hybrid lexical + dense (Chroma, all-MiniLM-L6-v2) search. It releases a cited answer only after deterministic policy, verification and guardrail checks; anything else becomes a human handoff with context. Orchestration is a LangGraph state graph, the API is FastAPI with role-based access, and a React workspace serves reviewers, knowledge owners and operators.
+CloudServe is a governed support-automation system for the FDE capstone. It classifies support tickets from four channels and retrieves evidence from 29 approved articles with policy-scoped document GraphRAG plus hybrid lexical + dense (Chroma, all-MiniLM-L6-v2) search. It releases a cited answer only after deterministic policy, verification and guardrail checks; anything else becomes a human handoff with context. Orchestration is a LangGraph state graph, the API is FastAPI with role-based access, and a React workspace serves reviewers, knowledge owners and operators.
 
 The [architecture](docs/architecture.md) is the design target. The [build ledger](docs/BUILD_PLAN.md) records what is proven. The [evaluation snapshot](docs/evaluation_snapshot.md) and [governance pack](docs/governance.md) hold the measured results and controls.
 
@@ -67,6 +67,14 @@ Knowledge:
 
 - `POST/GET /v1/knowledge/jobs`, `POST /v1/knowledge/jobs/{id}/approve|reject|publish`
 - `GET /v1/knowledge/documents[/{id}[/versions|/lineage]]`, `GET /v1/knowledge/passages/{id}`, `GET /v1/knowledge/indexes/active`
+
+Trust Center diagnostics:
+
+- `GET /v1/diagnostics/overview` — graph, Chroma, outbox, token/cost status, offline metrics and human-gold readiness
+- `GET /v1/diagnostics/retrieval?q=...` — lexical/dense/hybrid/reranker scores and fallback reasons
+- `GET /v1/diagnostics/graph/traverse?seed_doc_id=...` — bounded graph traversal evidence
+
+The React **Evaluation** view renders these diagnostics. USD cost is shown only when explicit per-million-token prices are configured; otherwise it is labelled `price_not_configured`.
 
 Policy and administration:
 

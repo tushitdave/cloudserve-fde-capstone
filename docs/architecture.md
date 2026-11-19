@@ -2,7 +2,7 @@
 
 This deployable-project copy is synchronized with `Research/11_canonical_architecture.md` in the parent workspace. Update both copies whenever an architecture decision changes.
 
-Status: agreed architecture, 15 November 2026. This is the implementation reference for the two pipelines and six agent roles. The user confirmed successful Azure smoke responses for `gpt-4o`, `o3-mini`, and `text-embedding-ada-002` (1536 embedding dimensions). Component quality, latency, and capstone acceptance targets are still unmeasured.
+Status: implemented prototype architecture, updated 17 November 2026. Azure `gpt-4o` and `o3-mini` remain optional agent tools. Measured production retrieval uses embedded Chroma with local `all-MiniLM-L6-v2` (384 dimensions); the earlier Azure `text-embedding-ada-002` path is retained only as a legacy/optional adapter and is not the active index.
 
 ## End-to-end architecture
 
@@ -19,8 +19,9 @@ flowchart LR
         KH["HITL: Knowledge owner<br/>certify / reject source"]
         QUAR["DET: Quarantine<br/>reason + audit event"]
         CHUNK["DET: Section-aware chunks<br/>stable passage IDs + permissions"]
-        EMB["ML: Azure text-embedding-ada-002<br/>1536-dimensional vectors"]
-        INDEX["Published KB<br/>canonical text + dense index<br/>lexical index + index manifest"]
+        EMB["ML: all-MiniLM-L6-v2<br/>384-dimensional local vectors"]
+        INDEX["Published KB<br/>canonical SQLite source of truth<br/>Chroma dense + TF-IDF lexical index"]
+        KGRAPH["Governed knowledge graph<br/>curated related_docs + source lineage"]
 
         DOC --> FORMAT
         FORMAT -->|Yes| PARSE
@@ -33,6 +34,7 @@ flowchart LR
         KH -->|Certify| CHUNK
         KREVIEW -->|Already certified and unchanged| CHUNK
         CHUNK --> EMB --> INDEX
+        CHUNK --> KGRAPH
     end
 
     %% ─────────────── TICKET PIPELINE ───────────────
@@ -48,7 +50,7 @@ flowchart LR
         PATH{"Routing decision"}
         RULEANSWER["DET: Approved rule response<br/>only if exact rule applies"]
         A4["Agent 4: Evidence<br/>query plan + bounded retry"]
-        SEARCH["ML/DET tool: Hybrid retrieval<br/>dense + lexical + optional reranker<br/>permission filter before agent prompt"]
+        SEARCH["ML/DET tool: Graph-assisted hybrid retrieval<br/>Chroma dense + TF-IDF lexical<br/>policy-scoped graph expansion + optional reranker"]
         EVIDENCE{"BR: Authorized evidence<br/>sufficient for this question?"}
         A5["Agent 5: Answer<br/>claim-level cited draft"]
         A6["Agent 6: Verification<br/>claim-to-passage review"]
@@ -85,7 +87,8 @@ flowchart LR
     subgraph MODELS["C. Azure OpenAI — models agents ke tools hain"]
         G4["GPT-4o<br/>default bounded agent tasks"]
         O3["o3-mini<br/>conditional complex-case experiment"]
-        ADA["text-embedding-ada-002<br/>KB and query embeddings"]
+        MINI["all-MiniLM-L6-v2<br/>active Chroma embeddings"]
+        ADA["text-embedding-ada-002<br/>legacy optional comparison path"]
         NLI["Optional claim-support ML/NLI<br/>sirf evaluation ke baad"]
     end
 
@@ -95,8 +98,8 @@ flowchart LR
     G4 -.-> A6
     O3 -.-> A3
     O3 -.-> A6
-    ADA -.-> EMB
-    ADA -.-> SEARCH
+    MINI -.-> EMB
+    MINI -.-> SEARCH
     NLI -.-> A6
     INDEX --> SEARCH
 
@@ -104,7 +107,8 @@ flowchart LR
     subgraph CONTROL["D. APIs, observability and evaluation"]
         HANDOFF["Versioned handoff JSON<br/>event_id + ticket_id/source_id<br/>trace_id + stage + producer"]
         APIS["GET ticket / decision<br/>GET and resolve escalation<br/>POST feedback<br/>POST knowledge job"]
-        TRACE["Trace + audit<br/>model, prompt, KB and policy versions<br/>stage latency + cost + failures"]
+        TRACE["Trace + audit<br/>model, prompt, KB and policy versions<br/>stage latency + provider tokens<br/>configured cost estimate + failures"]
+        TRUSTUI["React Trust Center<br/>graph + Chroma diagnostics<br/>retrieval scores + trace waterfall<br/>outbox + drift + gold readiness"]
         GOLD["Human-reviewed gold set<br/>route + relevant passages<br/>required/forbidden claims<br/>claim support + escalation quality"]
         EVAL["Layer-wise evaluation<br/>ML F1/calibration<br/>Retrieval Recall@k<br/>citation support + unsafe-auto rate<br/>p95 latency + terminal reconciliation"]
         IMPROVE["HITL: Approve changes<br/>KB / rules / prompts / models"]
@@ -121,6 +125,10 @@ flowchart LR
     RELEASE -.-> HANDOFF
     ESC -.-> HANDOFF
     HANDOFF --> TRACE
+    TRACE --> TRUSTUI
+    INDEX --> TRUSTUI
+    KGRAPH --> SEARCH
+    KGRAPH --> TRUSTUI
     API --> APIS
     SENT --> APIS
     ESC --> APIS
@@ -137,7 +145,7 @@ flowchart LR
     classDef terminal fill:#fce7f3,stroke:#db2777,color:#111827
 
     class A1,A2,A3,A4,A5,A6 agent
-    class CLASS,EMB,SEARCH,G4,O3,ADA,NLI ml
+    class CLASS,EMB,SEARCH,G4,O3,MINI,ADA,NLI ml
     class KREVIEW,PROTECT,UNCERTAIN,PATH,EVIDENCE,PASS business
     class PARSE,CHUNK,NORM,ROUTER,RULEANSWER,VALIDATE,RELEASE deterministic
     class KH,SH,IMPROVE human
@@ -151,5 +159,14 @@ flowchart LR
 3. Knowledge publication needs approved source authority. A changed or conflicting source goes to human certification; a certified unchanged version may be republished only under the recorded approval policy.
 4. Retrieval filters source permissions before passages enter agent prompts. Every cited passage resolves to the exact approved source and index version.
 5. Every accepted ticket reaches exactly one terminal state: `sent` or `escalated`. Human resolution is a later workflow, not a third automated terminal state.
-6. The Azure models are connectivity-confirmed by the user. Role fit, latency, cost, classifier calibration, retrieval quality and safety targets still require measurement. `o3-mini` and claim-support NLI remain conditional experiments.
+6. Azure models are optional bounded tools. Active embeddings are local MiniLM/Chroma; `o3-mini` is selected for Azure verification by the recorded comparison. Provider tokens are measured from Azure responses; USD remains an explicitly configured estimate, never a fabricated value.
 7. Handoff payloads, APIs and metric definitions must be implemented and versioned within this repository. Changes to this diagram must be reflected in contract schemas, API documentation, evaluation definitions and the six-agent workflow.
+8. GraphRAG is a bounded document-relationship traversal, not an auto-generated entity ontology. It may expand a document-model seed only inside the intent policy's authorised document set. Passage permission and evidence gates still apply.
+
+## Runtime contract boundary and current limitation
+
+Versioned Pydantic/JSON Schemas define the external handoffs (`QueryPlan`, `EvidenceBundle`, `DraftAnswer`, `VerificationReport`, `ValidationResult`, `EscalationPacket` and source-side equivalents). The current LangGraph implementation carries an in-process mutable `TicketRun` between nodes for failure recovery, so every internal edge is not yet serialized and revalidated as a standalone JSON envelope. API inputs, persisted results, evidence bundles and exported schemas are validated; a future distributed deployment must add a central `ContextEnvelope` assembler before moving any agent to a separate process.
+
+## Evaluator-facing truth labels
+
+The Trust Center displays the 120-item independent review queue and separate counts for passage relevance, explicit no-answer decisions, required/forbidden claims, claim support, escalation quality, hallucination review and two-reviewer adjudication. Until completed reviewer files and an adjudicated v2 artifact exist, the UI labels these counts as pending and never calls supplied labels or model candidates human gold.

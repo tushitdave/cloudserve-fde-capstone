@@ -319,6 +319,24 @@
       "title": "Trace Id",
       "type": "string"
     },
+    "channel": {
+      "anyOf": [
+        {
+          "enum": [
+            "email",
+            "chat",
+            "docs_comment",
+            "forum"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Channel"
+    },
     "terminal_state": {
       "enum": [
         "sent",

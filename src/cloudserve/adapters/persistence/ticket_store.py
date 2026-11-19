@@ -107,6 +107,21 @@ class Store:
             rows = db.execute("SELECT status, COUNT(*) FROM outbox GROUP BY status").fetchall()
         return {status: count for status, count in rows}
 
+    def outbox_health(self) -> dict:
+        with self._connect() as db:
+            rows = db.execute("SELECT status, COUNT(*), COALESCE(MAX(attempts),0) FROM outbox GROUP BY status").fetchall()
+            failures = db.execute("SELECT delivery_id,ticket_id,attempts,last_error FROM outbox WHERE status='dead_letter' ORDER BY rowid DESC LIMIT 10").fetchall()
+        by_status = {status: count for status, count, _ in rows}
+        return {
+            "by_status": by_status,
+            "total": sum(by_status.values()),
+            "pending": by_status.get("pending", 0),
+            "delivered": by_status.get("delivered", 0),
+            "dead_lettered": by_status.get("dead_letter", 0),
+            "max_attempts": max((attempts for _, _, attempts in rows), default=0),
+            "dead_letters": [{"delivery_id": row[0], "ticket_id": row[1], "attempts": row[2], "last_error": row[3]} for row in failures],
+        }
+
     def list_results(self, limit: int = 100, state: str | None = None, pending_only: bool = False,
                      tenant_id: str | None = None) -> list[TicketResult]:
         query = "SELECT t.result_json, h.payload_json FROM tickets t LEFT JOIN human_resolutions h ON t.ticket_id=h.ticket_id"

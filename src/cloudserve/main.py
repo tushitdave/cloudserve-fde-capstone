@@ -8,6 +8,7 @@ from cloudserve.api.routes.health import router as health_router
 from cloudserve.api.routes.knowledge import router as knowledge_router
 from cloudserve.api.routes.policy import router as policy_router
 from cloudserve.api.routes.tickets import router as tickets_router
+from cloudserve.api.routes.diagnostics import router as diagnostics_router
 from cloudserve.adapters.retrieval.dense_index import warm_up
 
 
@@ -22,3 +23,4 @@ app.include_router(health_router)
 app.include_router(tickets_router)
 app.include_router(knowledge_router)
 app.include_router(policy_router)
+app.include_router(diagnostics_router)

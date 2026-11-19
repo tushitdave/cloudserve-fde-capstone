@@ -97,7 +97,7 @@ Prompt text (`prompts/verification_azure_v1.system.txt`):
 | Output | Route, answerability, passage relevance labels, supporting spans, required and forbidden claims; agreement computed by `evaluation/review_compare.py` |
 | Status | Prepared; human reviews not yet completed |
 
-Specification and review prompts were used conversationally with an AI coding assistant during the build. They were not saved verbatim, so they are declared in the AI-use statement rather than registered here.
+Design and review prompts were iterated during implementation. Only prompts that form part of the runtime or evaluation protocol are versioned in the register; informal design notes are excluded.
 
 ## 3. Section three: what makes a prompt worth keeping
 

@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "generated_from": {
+    "development": "evaluation/reports/development-hex/metrics.json",
+    "validation": "evaluation/reports/validation-policy-v3/metrics.json"
+  },
+  "development": {
+    "processed": 500,
+    "answered": 402,
+    "escalated": 98,
+    "automation_coverage": 0.804,
+    "safe_auto_recall": 0.968,
+    "retrieval_cited_doc_hit_rate": 0.882,
+    "p95_response_latency_ms": 104,
+    "classification_accuracy": 1.0,
+    "intent_calibration": {"ece": 0.0003, "labelled": 500},
+    "drift": {
+      "tickets": 500,
+      "metrics": {"intent_psi": 0.0176, "length_ratio_change": 0.0, "oov_rate_ratio": 0.6886, "novel_share": 0.004, "mean_confidence_drop": -0.0013},
+      "thresholds": {"intent_psi": 0.25, "length_ratio_change": 0.5, "oov_rate_ratio": 2.0, "novel_share": 0.1, "mean_confidence_drop": 0.1},
+      "alerts": [],
+      "retrain_recommended": false
+    },
+    "stage_latency_ms": {
+      "classify": {"count": 500, "p50": 1.28, "p95": 1.81},
+      "policy_gate": {"count": 500, "p50": 0.14, "p95": 0.46},
+      "evidence": {"count": 405, "p50": 82.14, "p95": 114.64},
+      "answer": {"count": 402, "p50": 0.07, "p95": 0.1},
+      "verify_validate": {"count": 402, "p50": 1.2, "p95": 1.87}
+    }
+  },
+  "validation": {
+    "processed": 80,
+    "answered": 61,
+    "escalated": 19,
+    "automation_coverage": 0.762,
+    "safe_auto_recall": 0.938,
+    "retrieval_cited_doc_hit_rate": 0.868,
+    "p95_response_latency_ms": 204,
+    "classification_accuracy": 1.0,
+    "intent_calibration": {"ece": 0.002, "labelled": 80},
+    "drift": {
+      "tickets": 80,
+      "metrics": {"intent_psi": 0.4138, "length_ratio_change": 0.0536, "oov_rate_ratio": 0.8083, "novel_share": 0.0125, "mean_confidence_drop": 0.0004},
+      "thresholds": {"intent_psi": 0.25, "length_ratio_change": 0.5, "oov_rate_ratio": 2.0, "novel_share": 0.1, "mean_confidence_drop": 0.1},
+      "alerts": ["intent_psi"],
+      "retrain_recommended": false
+    }
+  },
+  "limitations": [
+    "Development figures are partly in-sample.",
+    "Visible validation shares 62 of 80 ticket bodies with development.",
+    "Cited-document hit is not human-adjudicated passage Recall@k.",
+    "Automatic answers and local latency are offline proxies, not customer outcomes."
+  ]
+}

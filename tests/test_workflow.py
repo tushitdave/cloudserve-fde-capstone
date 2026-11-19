@@ -12,6 +12,7 @@ def test_four_channels_and_terminal_log(tmp_path):
     service = TicketService(tmp_path / "tickets.sqlite")
     for channel in ("email", "chat", "docs_comment", "forum"):
         result = service.process({"ticket_id": f"TEST-{channel}", "channel": channel, "body": "I need help with my deployment configuration."})
+        assert result.channel == channel
         assert result.terminal_state in {"sent", "escalated"}
         assert service.store.events(result.ticket_id)[-1]["stage"] == "terminal"
     assert service.store.counts()["decisions_logged"] == 4

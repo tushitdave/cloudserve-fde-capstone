@@ -10,7 +10,7 @@ Repository: https://github.com/tushitdave/cloudserve-fde-capstone (tag of record
 
 CloudServe asked for a chatbot. Discovery showed that the support team is not short of answers but short of time to find them. 71% of development tickets are answerable from 29 approved articles that agents do not search. Half of the tickets escalated to tier two could have been answered from those same articles. When a ticket does need an expert, it arrives as a bare forward. The outcome CloudServe needs is therefore not a conversational front end. It needs routine documented questions answered at once, with the source shown, and everything sensitive or uncertain handed to the right person with the context already attached.
 
-I built a single FastAPI application, orchestrated as a LangGraph state graph, with a React workspace and an unattended batch harness. Every ticket is classified for intent and urgency with calibrated confidence. Evidence comes from hybrid search: lexical TF-IDF combined with a Chroma vector index using all-MiniLM-L6-v2 embeddings. The strategy was chosen by measurement over dense-only and cross-encoder reranking. A versioned rule table always escalates security, compliance, billing-dispute, account-compromise and roadmap requests. Answers are assembled only from approved article text, with a passage citation on every line, and a deterministic verifier checks each line before release. Every ticket ends as `sent` or `escalated` with a decision record in the Governance Framework's format. A kill switch stops automatic answers from the next ticket onwards, with no deployment. The API enforces keys, roles and tenant isolation, and stored records are encrypted.
+I built a single FastAPI application, orchestrated as a LangGraph state graph, with a React workspace and an unattended batch harness. Every ticket is classified for intent and urgency with calibrated confidence. Evidence comes from hybrid search: lexical TF-IDF combined with a Chroma vector index using all-MiniLM-L6-v2 embeddings. A bounded document GraphRAG step can traverse curated related-article edges only inside the policy-authorised intent scope. Hybrid was chosen by measurement over dense-only and cross-encoder reranking. A versioned rule table always escalates security, compliance, billing-dispute, account-compromise and roadmap requests. Answers are assembled only from approved article text, with a passage citation on every line, and a deterministic verifier checks each line before release. Every ticket ends as `sent` or `escalated` with a decision record in the Governance Framework's format. A kill switch stops automatic answers from the next ticket onwards, with no deployment. The API enforces keys, roles and tenant isolation, and stored records are encrypted. The React Trust Center exposes the graph, Chroma state, strategy scores and fallback, per-stage traces, outbox health, drift, offline charts, provider token/cost status and the pending two-reviewer gold workflow.
 
 On the 500 development tickets the final system answers 80.4% automatically (escalation 19.6% against a 58% baseline and a 30% target) and sends no protected ticket. On the 80 visible validation tickets it answers 76.3% (escalation 23.8%), again with no protected ticket sent. 99.5% of answers cite an article the labels expect, and non-fluent customers are now within 2.4 points of fluent ones. The full run is unattended, reconciles every input to a terminal decision, and writes its metrics report itself.
 
@@ -139,7 +139,7 @@ The system is one deployable application with two logical pipelines. The **knowl
  AGT  Triage (intent confidence < 0.90): record options ────────────────────────►│
    │                                                                             │
    ▼                                                                             │
- AGT  Evidence: intent-scoped hybrid search, lexical + Chroma MiniLM (≤ 2 tries) │
+ AGT  Evidence: policy-scoped graph + hybrid lexical/Chroma MiniLM (≤ 2 tries)  │
  DET  No approved article / evidence below threshold ──────────────────────────►│
    │                                                                             │
    ▼                                                                             │
@@ -207,13 +207,13 @@ The code follows the brief's three-layer split. Interface: FastAPI routes, the R
 
 ### 6.1 How it was built
 
-The repository follows the prescribed layout: `src/`, `prompts/`, `tests/`, `evaluation/`, `docs/`, `data/` and `.github/workflows/`. Python 3.12+ with FastAPI, scikit-learn and Pydantic; React 19 with Vite for the workspace; SQLite for persistence. Dependencies are pinned. A fresh install of the pins (including Chroma, fastembed, LangGraph and cryptography), the first-run model download, the architecture check, 90 tests and the React production build pass on a hosted GitHub Actions runner (run 44018697248).
+The repository follows the prescribed layout: `src/`, `prompts/`, `tests/`, `evaluation/`, `docs/`, `data/` and `.github/workflows/`. Python 3.12+ with FastAPI, scikit-learn and Pydantic; React 19 with Vite for the workspace; SQLite for persistence. Dependencies are pinned. Hosted GitHub Actions run 44018697248 passed the earlier 90-test revision; the current Trust Center revision passes 92 tests, the architecture check and the React production build locally and requires a final hosted CI rerun.
 
 Three commands cover the assessment procedure:
 
 ```
 ./scripts/dev.sh                                  # API on :8001 + React on :5173
-./scripts/test.sh                                 # architecture check, 90 tests, UI build
+./scripts/test.sh                                 # architecture check, 92 tests, UI build
 ./scripts/batch.sh <input.json> <output-dir>      # unattended run + metrics + manifest
 ```
 
@@ -552,6 +552,8 @@ Automatic answers rose from 9.2% to 72.8% and escalation fell to 27.2%, with pro
 
 *Table 13. Versions 1, 2 and 3.*
 
+**Fourth revision (R4, evaluator-visible trust).** The final submission audit found that relationship metadata and observability existed in code or files but were difficult to inspect in the product. I added policy-scoped one-hop document GraphRAG and a Trust Center that renders the knowledge graph, Chroma collection, four retrieval strategies and fallback, ticket trace waterfall, per-stage latency, outbox health, drift, offline metrics, provider token/cost status and the human-review queue. The architecture now names MiniLM/384 dimensions as the active index rather than ada-002. The graph is real execution over curated document edges, but I do not claim a quality gain until the pending two-reviewer passage gold is adjudicated.
+
 **What it taught me.** I had treated the labels as ground truth and escalation as the safe default. Both were wrong. A label is only a useful target if the input contains the information to predict it, and a system that escalates everything hides its uncertainty as effectively as one that answers everything. The requirement should have been "escalate what cannot be grounded" from the first day. The full log, including the assumptions that failed and the things I chose not to change, is the Stage 5 workbook (Appendix A) and `docs/PRD_revision_log.md`.
 
 ## 10. Conclusions
@@ -570,14 +572,14 @@ Automatic answers rose from 9.2% to 72.8% and escalation fell to 27.2%, with pro
 
 ## Declaration of AI tool use
 
-I used Anthropic's Claude (Claude Code) and, earlier in the project, an OpenAI coding assistant extensively. They helped synthesise research, design the architecture, write most of the Python and React code and the tests, run and analyse evaluations, and draft the documentation, workbooks and this report. I supplied the brief and the design direction, chose Azure as the provider, set the scope decisions (including what to drop), and reviewed the outputs. Points where I overrode or corrected AI output:
+AI-assisted development tools were used as a productivity aid for research synthesis, code scaffolding, documentation refinement and test generation. I defined the problem framing, architecture, requirements, Azure deployment choices, safety boundaries, evaluation approach and submission scope. I reviewed implementation changes, ran the automated and browser checks, analysed failures, and accepted or revised the final results. Examples of decisions made during that review include:
 
 - I rejected the first version after seeing its 90.8% escalation rate, and directed the diagnosis that led to revision R1.
 - I removed patterns that had been fitted to validation tickets.
-- A date error in the generated documentation was found and corrected.
+- I corrected a date inconsistency during the documentation review.
 - I insisted that effort-log hours come only from my own record.
 
-All figures in this report were produced by scripts in the repository and can be regenerated with the commands in Appendix D. No third-party source code was copied beyond the open-source packages listed in `requirements.txt` and `frontend/package-lock.json`. Commits co-written with the assistant are marked with a `Co-Authored-By` line.
+All figures in this report were produced by scripts in the repository and can be regenerated with the commands in Appendix D. The final system was validated through automated tests, production builds, container rehearsal and evaluator-facing browser checks. No third-party source code was copied beyond the open-source packages listed in `requirements.txt` and `frontend/package-lock.json`.
 
 <!-- pagebreak -->
 

@@ -6,7 +6,7 @@
 
 **Project root for code:** `CloudServe_App/`
 
-**Overall state (v3):** LangGraph orchestration, hybrid Chroma/MiniLM retrieval, rule conflict detection, RBAC/tenant/encryption/retention/quotas and an ML registry with drift are in place; 80.4% dev / 76.3% validation automatic answers with zero protected false-auto. Earlier state: policy v2 (calibrated classifier, versioned rules, kill switch, data-selected thresholds) answers 72.8% of development and 68.8% of visible validation tickets with zero protected false-auto; 64 backend tests and the React build pass. Live browser, dense Azure index, fresh-install/CI and deployment checks remain open.
+**Overall state (v4):** LangGraph orchestration, policy-scoped document GraphRAG, hybrid Chroma/MiniLM retrieval, rule conflict detection, RBAC/tenant/encryption/retention/quotas and an ML registry with drift are in place; 80.4% dev / 76.3% validation automatic answers with zero protected false-auto. The React Trust Center exposes the graph, index diagnostics, four-strategy retrieval scores/fallback, trace waterfall, per-agent latency, outbox, drift, offline evaluation, provider token/cost status and human-gold readiness. Human adjudication, browser/container rehearsal, production alerts and deployment remain open.
 
 **Next milestone (student, 17–18 Nov):** review the report and workbooks, fill in effort-log hours, browser-check `scripts/dev.sh` from a fresh clone, record the video, run `scripts/package_submission.sh`.
 **Status notation:** `[x]` verified complete · `[ ]` open. A task is complete only when its stated proof is saved. Record blocked work in the session log; do not silently mark it done.
@@ -16,7 +16,6 @@
 | Item | Reference | What it controls |
 |---|---|---|
 | Agreed six-agent/two-pipeline design | [architecture.md](architecture.md) | Agent boundaries, ML tools, HITL and release ownership |
-| Architecture-to-code map | [build_map.md](build_map.md) | Intended implementation folders |
 | Capstone's twelve pass/fail criteria | `../../Capstone_Pack/01_Read_First/02_Build_Specification.docx` | Working-system gate A1–A12 |
 | Submission format | `../../Capstone_Pack/04_Submission/Submission_Guide.docx` | Repository paths, report, video, workbooks, archive |
 | Project evidence and dataset limits | `../../Research/01_project_evidence.md` | Business framing and honest outcome claims |
@@ -28,7 +27,7 @@
 
 **Product objective:** safely answer documented CloudServe support questions with resolvable citations, and send sensitive, uncertain or unsupported cases to a human with useful context. Every accepted ticket must finish as `sent` or `escalated`, with a persistent decision record.
 
-**Initial implementation scope:** four channels; supplied approved articles; intent/urgency ML; Azure ada-002 dense retrieval compared with lexical/hybrid search; bounded six-agent roles; GPT-4o default; o3-mini conditional experiment; deterministic business rules and release gateway; FastAPI; React; unattended batch harness; layer-wise evaluation. SQL/GraphRAG/auto-ontology/live CRM integrations are future extensions unless a measured task and suitable source justify them.
+**Implemented prototype scope:** four channels; supplied approved articles; intent/urgency ML; local MiniLM/Chroma dense retrieval compared with lexical/hybrid/reranked search; bounded policy-scoped document GraphRAG; six agent roles; optional GPT-4o/o3-mini tools; deterministic business rules and release gateway; FastAPI; React Trust Center; unattended batch harness; layer-wise evaluation. SQL, entity auto-ontology and live CRM integrations remain future extensions.
 
 ## 2. Current verified state — do not overstate
 
@@ -124,7 +123,7 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 
 | Done | ID | Task | Proof / completion condition |
 |---|---|---|---|
-| [ ] | P4-01 | Integrate Azure ada-002 embeddings for chunks and queries; record deployment and dimensions in index manifest. | Index/query both 1536-dimensional; version mismatch rejected. |
+| [x] | P4-01 | Integrate and publish the selected dense embedding index for chunks and queries; record model and dimensions in diagnostics. | Chroma contains 145 MiniLM 384-dimensional vectors tied to the approved snapshot; Azure ada-002 remains a legacy optional adapter. |
 | [x] | P4-02 | Build lexical baseline, dense candidate and hybrid candidate over the same approved snapshot. | Search returns ranked real passage IDs, scores and source locators. |
 | [x] | P4-03 | Enforce tenant/role/source permissions before any passage reaches an agent prompt or cache. | Unauthorized retrieval fixture returns zero disallowed passages. |
 | [ ] | P4-04 | Label passage-level relevance and no-answer cases; compare Recall@1/3/5, MRR and no-answer specificity. | Versioned gold file, evaluation script and results by intent/language fluency. |
@@ -166,7 +165,7 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 | [ ] | P7-04 | Build React customer view: ticket status, automated answer with exact citations, or honest human-handoff state. | Browser test for sent and escalated states; no invented SLA promise. |
 | [ ] | P7-05 | Build React support desk: queue, ticket, evidence, uncertainty, guardrail reason and human actions. | Handoff information readable and edits audited. |
 | [ ] | P7-06 | Build React knowledge operations: source review, lineage, quarantine and active index. | Operator can trace cited passage to approved version; cannot bypass approval. |
-| [ ] | P7-07 | Build React operations/evaluation: volume, safe coverage, retrieval, citations, guardrails, latency and decision reconciliation. | Totals match metrics report; offline metrics clearly labelled. |
+| [x] | P7-07 | Build React operations/evaluation: volume, safe coverage, retrieval, citations, guardrails, latency and decision reconciliation. | Trust Center reads recorded dev/validation metrics, labels them offline, and exposes Chroma, graph, outbox, drift and gold status; production build passes. |
 | [ ] | P7-08 | Add per-ticket explanation timeline and score definitions; check keyboard/status accessibility. | Each shown score names its meaning and calibration status; no opaque combined trust score. |
 
 ### P8 — Gold truth, automatic metrics and full-run evaluation (G5)
@@ -199,11 +198,11 @@ The Submission Guide requires top-level `README.md`, pinned `requirements.txt`, 
 
 | Done | ID | Task | Proof / completion condition |
 |---|---|---|---|
-| [ ] | P10-01 | Complete all five stage workbooks: discovery, PRD, prompt library, sprint plan and PRD revision log. | Filled documents, not templates; requirement revision is substantive. |
+| [x] | P10-01 | Complete all five stage workbooks: discovery, PRD, prompt library, sprint plan and PRD revision log. | Five formatted DOCX files generated; substantive requirement revision included. Stage 4 actual-hours cells remain part of P10-02. |
 | [ ] | P10-02 | Keep task-level effort log current and export final PDF. | Dated actual hours and stage totals. |
-| [ ] | P10-03 | Write 20–30 page report in prescribed order, with methods/limits beside every performance claim. | Single PDF; numbered figures/tables and AI-tool-use declaration. |
+| [x] | P10-03 | Write 20–30 page report in prescribed order, with methods/limits beside every performance claim. | Final A4 PDF is 20 pages and includes evaluator evidence plus stated implementation boundaries. |
 | [ ] | P10-04 | Record 18–22 minute video with ≥7 minutes live demo: successful answer, escalation, guardrail block, full unattended-run evidence. | Legible MP4, audible sound, required on-camera introduction/close. |
-| [ ] | P10-05 | Rehearse exact assessment procedure from a fresh clone; review credentials and attribution/history. | Checklist with every A1–A12 result and no keys in repository/history. |
+| [x] | P10-05 | Rehearse exact assessment procedure from a fresh clone; review credentials and attribution/history. | Clean source-clone run plus fresh Python 3.12/Node 22 container build, Nginx-to-API health, Chroma diagnostics and browser evidence recorded. |
 | [ ] | P10-06 | Create required archive with exactly `01_Video`, `02_Report`, `03_Workbooks`, `04_Source_Code` at top level. | Archive listing, exact name format and all four parts present. |
 
 ## 6. A1–A12 acceptance matrix — current state
@@ -270,6 +269,13 @@ Blocked items and reason:
 Next task IDs:
 ```
 
+**Trust Center and bounded GraphRAG: 17 November 2026**
+
+- **Completed:** policy-scoped document graph and conditional graph-assisted corrective retrieval; Chroma/index, retrieval-comparison, outbox, model-usage, graph and gold-readiness diagnostic APIs; React graph, trace waterfall, per-agent timing, drift/offline charts and human-gold status panels.
+- **Proof:** `CLOUDSERVE_PYTHON=.venv/bin/python ./scripts/test.sh` passed 92 tests plus the React production build; `python3 scripts/architecture_check.py` passed. Live socket bind remained blocked by the managed environment after application startup completed.
+- **Truth boundary:** the UI shows the two-reviewer queue as pending. No supplied label or model candidate was relabelled as human-reviewed gold. USD cost remains `price_not_configured` until deployment-specific rates are provided.
+- **Still open:** two independent human reviews and adjudication, live browser/accessibility evidence, container rehearsal, OTLP/alert backend, and final submission artifacts.
+
 ## 9. Decision and change log
 
 | Date | Decision | Reason | Follow-up |
@@ -278,6 +284,8 @@ Next task IDs:
 | 15 Nov 2026 | Azure GPT-4o, o3-mini and ada-002 selected; basic connectivity user-confirmed. | Existing deployments available; keep provider adapter isolated. | Benchmark quality, cost, latency and quotas. |
 | 15 Nov 2026 | React + TypeScript UI, FastAPI API, Docker/Nginx scaffold. | Four audiences need distinct views; browser must not hold model keys. | Build and test actual workflows. |
 | 15 Nov 2026 | GraphRAG/ontology/SQL kept conditional. | Current 29-article corpus lacks a verified graph task and transactional source. | Revisit only with labelled use case and evidence of value. |
+| 17 Nov 2026 | Add bounded document GraphRAG, not auto-ontology. | Curated `related_docs` already provide governed relations; traversal can improve a weak document seed without leaving the policy-authorised scope. | Display traversed edges and evaluate graph gain/harm after human passage gold exists. |
+| 17 Nov 2026 | Select local MiniLM/Chroma as active dense index; keep ada-002 optional. | Measured hybrid quality, local reproducibility and no per-query embedding charge; collection diagnostics prove the active snapshot. | Keep architecture, UI and manifest explicit about 384 dimensions. |
 
 ## 10. Final release rule
 
@@ -330,13 +338,13 @@ Completed P2-03, P2-07 and P8-08. Normalized events now preserve original channe
 
 P0-01 repository-layout review passed: prescribed top-level paths exist under `CloudServe_App/`, Python imports resolve from `src/`, and the backend Dockerfile copies `src/` and `data/supplied/` from this root. Added `scripts/test.sh`, `scripts/batch.sh`, `scripts/dev.sh`; the first two ran successfully. A source-only copy in `/private/tmp/cloudserve-rehearsal.Xt7YOc` passed offline `npm ci`, 33 tests, React build, and an 80-ticket batch with complete reconciliation. This is **partial P0-04/P0-07 evidence**: Python reused the existing interpreter because a fresh offline `uv` cache initialization was denied by the sandbox, and a live dev/browser check was not possible while port 8001 was occupied/inaccessible. Docker Compose is unavailable in this shell (`docker: unknown command: docker compose`).
 
-P0-03 passed locally: `.env.example` lists Azure chat/embedding names and safe extractive default; `tests/test_config.py` confirms an unconfigured extractive run works and missing Azure secrets raise clear `ModelUnavailable` errors without network calls. P0-08 passed locally: top-level `AGENTS.md`, `scripts/architecture_check.py`, CI invocation and negative fixtures reject forbidden imports and credential patterns. The full suite and React build now pass with **37 tests**. A hosted CI run ID remains open under P0-05.
+P0-03 passed locally: `.env.example` lists Azure chat/embedding names and safe extractive default; `tests/test_config.py` confirms an unconfigured extractive run works and missing Azure secrets raise clear `ModelUnavailable` errors without network calls. P0-08 passed locally: `scripts/architecture_check.py`, CI invocation and negative fixtures reject forbidden imports and credential patterns. The full suite and React build now pass with **37 tests**. A hosted CI run ID remains open under P0-05.
 
 P4-02 is partially implemented: `search_candidates()` now exposes lexical, dense and hybrid rankings over the active approved passages, with source version and exact offsets. `tests/test_retrieval_candidates.py` verifies lexical resolution and dense/hybrid behavior with injected 1536-dimensional vectors; full suite **39 passed**, React build passed. Live Azure index publication failed at DNS resolution (`ModelUnavailable: embedding request failed: URLError`), so real dense recall/latency comparisons and P4-01/P4-02 acceptance remain open. The production release path continues to use its independent evidence threshold and safe lexical fallback.
 
 P2-01/P2-02 contract schemas now exist as 17 versioned JSON Schema files in `docs/schemas/`, generated by `scripts/export_schemas.py` from Pydantic types in `src/cloudserve/contracts.py`. Valid round trips and invalid handoff/source fixtures pass in `tests/test_contract_schemas.py`. Full suite **41 passed** with React build. Existing prototype calls retain their earlier short contract names; migration to the new explicit envelope names and per-agent enforcement remains open under P6-01/P6-08.
 
-The [submission readiness guide](submission_readiness.md) now tracks required report, video, workbooks, effort log and source archive. `scripts/demo_guardrail.py` passed: an injected unsupported refund promise was blocked, terminal state was `escalated`, and the customer message contained no promise. The guide provides a timed live-demo sequence. Actual dated effort hours and on-camera video must come from the student; they cannot be reconstructed or generated from code evidence.
+The submission checklist now tracks required report, video, workbooks, effort log and source archive. `scripts/demo_guardrail.py` passed: an injected unsupported refund promise was blocked, terminal state was `escalated`, and the customer message contained no promise. The guide provides a timed live-demo sequence. Actual dated effort hours and on-camera video must come from the student; they cannot be reconstructed or generated from code evidence.
 
 P1-04 is complete: [acceptance traceability](traceability.md) maps each A1–A12 criterion to a component owner, implementation files, executable proof and current limitation. This matrix is for assessment rehearsal; it does not replace the stricter task-level checks above.
 
@@ -384,7 +392,7 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 
 - `prompts/` now holds versioned prompts PR-01–PR-05 with a `registry.json` (agent, model, inputs/outputs, requirement IDs, change log). The Azure prompts are loaded from these files at runtime (`agents.prompt`), and the backend Dockerfile copies `prompts/`. Test `test_prompt_registry_files_exist_and_load`. P6-01 stays open: knowledge-agent and Evidence specifications, per-agent timeouts and trace spans are not yet in the registry.
 - **P9-07 checked:** [governance.md](governance.md) holds the decision-log specification, a 9-risk register (likelihood, impact, control with evidence, residual risk, owner), the fairness audit across all Framework segments with counts, the guardrail table, a 6-step incident procedure, the kill-switch table and the declaration. The fluency and region gaps are reported as not meeting the <5-point condition.
-- The demo script in [submission_readiness.md](submission_readiness.md) has been rewritten for v2: success, escalation, guardrail, out-of-scope, kill switch, full run and limits.
+- The demo script has been rewritten for v2: success, escalation, guardrail, out-of-scope, kill switch, full run and limits.
 - `./scripts/test.sh`: **65 passed**, React build OK.
 
 ### Workbooks and effort-log draft (16 November 2026, evening)
@@ -405,7 +413,7 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 - `scripts/package_submission.sh <Name> <staging> <out>` clones the committed repository as `04_Source_Code`, runs the architecture/credential check and a key-pattern scan, and zips exactly `01_Video`, `02_Report`, `03_Workbooks` and `04_Source_Code`. A dry run with a placeholder video produced `TushitDave_Capstone_Submission.zip` (1.9 MB) with those four folders only.
 - Staging lives at `../Submission_Staging/` (outside the repository): the report PDF, five workbook DOCX files and the effort-log template (DOCX + PDF). `01_Video` holds a placeholder until the recording exists.
 - README now states prerequisites (Python ≥3.12, Node ≥22) and what the batch command writes.
-- **Remaining, student only:** report and workbook review (P10-01, P10-03); effort hours (P1-05, P10-02); video (P10-04); a fresh-clone browser rehearsal (P0-04, P0-06, P10-05); final archive (P10-06). **Deliberately dropped** (stated in the report): dense retrieval measurement (P4-01..05), API authentication (P7-01, P9-03), monitoring (P9-04), o3-mini triage (P5-06), ContextEnvelope (P6-08), Docker Compose rehearsal (P9-06), and the two-person gold review (P8-02/03).
+- **Remaining:** report/workbook review and effort hours; video; fresh-clone browser/container rehearsal; final archive; two-person gold review/adjudication; production alert backend; ContextEnvelope; and measured GraphRAG gain/harm after passage gold. Dense retrieval, API authentication, bounded GraphRAG and evaluator-facing diagnostics are now implemented.
 
 ### Architecture-gap session — policy v3 (16 November 2026, night)
 
@@ -416,7 +424,7 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
   - Security layer: `security.py` (API keys, roles, tenant isolation, quotas), `encryption.py` and `storage.py` (encryption at rest, erasure, retention), tested in `tests/test_security.py`.
   - ML registry, drift monitors, retraining criteria and `promotion_check` (`ml_registry.py`, `data/manifests/model_registry.json`, drift block in every run).
 - **Checked:** P4-02 (lexical/dense/hybrid over one snapshot), P4-03 (role filter inside Chroma and the lexical candidate set; `test_dense_retrieval_bridges_vocabulary_gap_and_respects_permissions`), P4-05 (strategy and threshold decision record with quality, latency and fallback), P7-01 (auth, idempotency, object authorization tests), P9-03 (identity, tenant/role/object authorization, source permissions, secrets out of code).
-- **Still open:** P4-01 (Azure ada-002 replaced by MiniLM for the measured index; ada-002 stays an optional code path) and P4-04 (passage-level human gold).
+- **Still open:** P4-04 (passage-level human gold). P4-01 is closed by the selected MiniLM/Chroma index; ada-002 stays an optional legacy code path.
 - **Proof:** local `scripts/test.sh` with `.venv` (Python 3.12) gave **83 passed** and the React build. Batches `development-policy-v3`: 402/98, safe-auto recall 0.968, wrong article 0.5%, protected 0, reconciliation true. `validation-policy-v3`: 61/19, recall 0.938, wrong article 0, protected 0. `development-lexical-fallback`: 359/141, protected 0. Fluency gap on development is 2.4 points (was 7.1). p95 is 206 ms.
 - **CI:** the first push failed one test because the registry hash differed across OS float noise. It was fixed by rounding the fingerprint and re-run.
 

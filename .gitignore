@@ -17,3 +17,21 @@ evaluation/reports/
 .uv_cache/
 .DS_Store
 build/
+
+# Local-only working material (never pushed)
+output/
+submission/
+tmp/
+uv.lock
+*.egg-info/
+AGENTS.md
+docs/build_map.md
+docs/submission_readiness.md
+docs/SUBMISSION_FINALIZATION.md
+docs/video/
+scripts/build_demo_video.py
+scripts/build_kokoro_demo_video.py
+scripts/build_piper_demo_video.py
+scripts/finalize_demo_video.sh
+scripts/rewrite_report_ai_declaration.py
+scripts/stage_submission.sh

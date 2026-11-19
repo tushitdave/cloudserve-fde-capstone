@@ -93,6 +93,14 @@ The remaining designed components were built and the open design questions measu
 
 The default extractive path gave identical results before and after (0 differences on 500 tickets).
 
+## Revision R4 — 17 November 2026: evaluator-visible trust and bounded document GraphRAG
+
+**What prompted it.** The submission audit found that curated `related_docs` existed but were not executed, while the UI did not expose the active Chroma collection, strategy scores/fallback, per-stage traces, outbox, drift, provider usage or human-gold status. The canonical diagram also still named Azure ada-002 although the measured active index was local MiniLM.
+
+**What changed.** One-hop document traversal now expands a weak document-model seed only inside the intent policy's authorised document set; passage permissions and the evidence threshold remain mandatory. A diagnostics API and React Trust Center expose the graph, Chroma collection/dimensions, lexical/dense/hybrid/reranker comparison, fallback reason, trace waterfall, per-agent latency, outbox/dead-letter health, drift/offline charts and real provider token usage. USD is shown only as a configured estimate. The 120-ticket review queue is displayed as pending until two real reviewers and adjudication artifacts exist.
+
+**Proof and limitation.** The current revision passes 92 tests, the architecture check and the React production build. Graph execution is real but its incremental retrieval gain is unknown until passage-level human gold exists. This is document GraphRAG over curated relationships, not an entity ontology or NVIDIA auto-ontology claim.
+
 ## Open revisions
 
 - (Closed by R2.) The non-fluent gap fell from 7.1 to 2.4 points with hybrid retrieval. The regional gap (Latin America, n=39) remains above 5 points.

@@ -17,4 +17,4 @@ This matrix maps every Build Specification criterion to an accountable component
 | A11 | No hit, timeout, rate limit, outage and malformed input fail safely | Reliability | `service.py`, `azure.py`, `tests/test_safety_suite.py` | 13 injected safety cases and full-run reconciliation; **local pass**, live provider recovery open. |
 | A12 | One documented command runs tests | Test harness | `scripts/test.sh`, `README.md`, `.github/workflows/ci.yml` | `./scripts/test.sh` passes 90 tests and the React build; hosted CI run 44018697248 green on a fresh Python 3.12 runner; **local + CI pass**. |
 
-The component owner names describe responsibility in this single-student project; they do not imply a separate human team. The [build ledger](BUILD_PLAN.md) controls task completion, and the [submission readiness guide](submission_readiness.md) controls final package evidence.
+The component owner names describe responsibility in this single-student project; they do not imply a separate human team. The [build ledger](BUILD_PLAN.md) controls task completion.

@@ -9,6 +9,7 @@ from cloudserve.domain.models.contracts import Classification, EvidenceBundle, P
 from cloudserve.adapters.retrieval.knowledge_index import document_passages, index, retrieve, retrieve_with_strategy
 from cloudserve.config import APP_ROOT
 from cloudserve.adapters.persistence.knowledge_store import KnowledgeStore
+from cloudserve.adapters.retrieval.knowledge_graph import traverse
 
 
 def prompt(name: str) -> str:
@@ -129,7 +130,8 @@ class EvidenceAgent:
         # intent's approved scope; otherwise search every approved article for the intent.
         scope = [predicted_doc] if predicted_doc in allowed and doc_confidence >= DOCUMENT_THRESHOLD else sorted(allowed)
         return QueryPlan(ticket_id=ticket.ticket_id, path="approved_document", query=query,
-                         allowed_doc_ids=scope, max_searches=2, source_revision=revision)
+                         allowed_doc_ids=sorted(allowed), seed_doc_ids=scope,
+                         max_searches=2, source_revision=revision)
 
     def search(self, query: str, allowed: set[str], strategy: str) -> tuple[list[Passage], str, str | None]:
         """One bounded search; only Resolution passages are primary evidence."""
@@ -168,13 +170,18 @@ class EvidenceAgent:
                                   retrieval_strategy=strategy)
         _, doc_confidence = predict_document(ticket)
         query = plan.query
-        allowed = set(plan.allowed_doc_ids)
+        allowed = set(plan.seed_doc_ids or plan.allowed_doc_ids)
+        intent_scope = set(plan.allowed_doc_ids)
+        graph_traversal = traverse(allowed, intent_scope, max_hops=1)
         passages, used, fallback = self.search(query, allowed, strategy)
         queries = [query]
         if not (passages and passages[0].score >= policy.evidence_threshold(used)):
             rewritten, self.last_planner = self.rewrite(ticket, classification, allowed, mode)
             queries.append(rewritten)
-            retry, used_retry, fallback_retry = self.search(rewritten, allowed, strategy)
+            # GraphRAG is a bounded corrective retrieval step.  It can expand a
+            # document-model seed, but only inside the policy-authorised intent scope.
+            expanded = set(graph_traversal["expanded_doc_ids"]) or allowed
+            retry, used_retry, fallback_retry = self.search(rewritten, expanded, strategy)
             if retry and (not passages or retry[0].score > passages[0].score):
                 passages, used, fallback = retry, used_retry, fallback_retry or fallback
         sufficient = bool(passages and passages[0].score >= policy.evidence_threshold(used))
@@ -188,7 +195,8 @@ class EvidenceAgent:
                               queries=queries, document_id=passages[0].doc_id if passages else None,
                               document_confidence=round(min(1.0, doc_confidence), 6),
                               top_score=passages[0].score if passages else 0.0, supporting_passages=supporting,
-                              retrieval_strategy=used, fallback_reason=fallback)
+                              retrieval_strategy=used, fallback_reason=fallback,
+                              graph_traversal=graph_traversal)
 
 
 def _bullets(text: str) -> list[str]:

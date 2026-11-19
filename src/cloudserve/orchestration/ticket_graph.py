@@ -116,6 +116,7 @@ def evidence_node(state: GraphState) -> GraphState:
     run.events.append(("evidence", {"passage_ids": [p.passage_id for p in bundle.passages], "searches": bundle.searches,
                                     "scores": {p.passage_id: p.score for p in bundle.passages},
                                     "retrieval_strategy": bundle.retrieval_strategy, "fallback_reason": bundle.fallback_reason,
+                                    "graph_traversal": bundle.graph_traversal,
                                     "document_id": bundle.document_id, "document_confidence": bundle.document_confidence,
                                     "snapshot_revision": bundle.snapshot_revision, "sufficient": bundle.sufficient,
                                     "reason": bundle.reason, "queries": bundle.queries}))

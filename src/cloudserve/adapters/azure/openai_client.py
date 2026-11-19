@@ -4,12 +4,61 @@ import json
 import urllib.parse
 import urllib.request
 import urllib.error
+import threading
 
 from cloudserve.config import setting
 
 
 class ModelUnavailable(RuntimeError):
     pass
+
+
+_USAGE_LOCK = threading.Lock()
+_USAGE: dict[str, dict[str, float]] = {}
+
+
+def _price(model: str, kind: str) -> float:
+    names = {
+        ("gpt-4o", "input"): "CLOUDSERVE_GPT4O_INPUT_USD_PER_M",
+        ("gpt-4o", "output"): "CLOUDSERVE_GPT4O_OUTPUT_USD_PER_M",
+        ("o3-mini", "input"): "CLOUDSERVE_O3MINI_INPUT_USD_PER_M",
+        ("o3-mini", "output"): "CLOUDSERVE_O3MINI_OUTPUT_USD_PER_M",
+        ("text-embedding-ada-002", "input"): "CLOUDSERVE_ADA002_INPUT_USD_PER_M",
+    }
+    try:
+        return float(setting(names.get((model, kind), ""), "0") or 0)
+    except ValueError:
+        return 0.0
+
+
+def _record_usage(model: str, usage: dict | None) -> None:
+    if not usage:
+        return
+    prompt = int(usage.get("prompt_tokens") or usage.get("input_tokens") or 0)
+    completion = int(usage.get("completion_tokens") or usage.get("output_tokens") or 0)
+    total = int(usage.get("total_tokens") or prompt + completion)
+    estimated = prompt * _price(model, "input") / 1_000_000 + completion * _price(model, "output") / 1_000_000
+    with _USAGE_LOCK:
+        row = _USAGE.setdefault(model, {"calls": 0, "input_tokens": 0, "output_tokens": 0, "total_tokens": 0, "estimated_usd": 0.0})
+        row["calls"] += 1
+        row["input_tokens"] += prompt
+        row["output_tokens"] += completion
+        row["total_tokens"] += total
+        row["estimated_usd"] = round(row["estimated_usd"] + estimated, 8)
+
+
+def usage_snapshot() -> dict:
+    """Process-local provider usage. Cost stays zero until explicit price settings are configured."""
+    with _USAGE_LOCK:
+        models = {name: dict(values) for name, values in _USAGE.items()}
+    return {
+        "models": models,
+        "total_calls": int(sum(row["calls"] for row in models.values())),
+        "total_tokens": int(sum(row["total_tokens"] for row in models.values())),
+        "estimated_usd": round(sum(row["estimated_usd"] for row in models.values()), 8),
+        "cost_status": "configured_estimate" if any(_price(name, "input") or _price(name, "output") for name in models) else "price_not_configured",
+        "scope": "current_api_process",
+    }
 
 
 def embed(texts: list[str], timeout: int = 20) -> list[list[float]]:
@@ -25,6 +74,7 @@ def embed(texts: list[str], timeout: int = 20) -> list[list[float]]:
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             data = json.load(response)
+        _record_usage("text-embedding-ada-002", data.get("usage"))
         ordered = sorted(data["data"], key=lambda item: item["index"])
         vectors = [item["embedding"] for item in ordered]
         if len(vectors) != len(texts) or any(len(vector) != 1536 for vector in vectors):
@@ -48,6 +98,7 @@ def chat(messages: list[dict], model: str = "gpt-4o", timeout: int = 12) -> str:
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             data = json.load(response)
+        _record_usage(model, data.get("usage"))
         content = data["choices"][0]["message"]["content"]
         if not isinstance(content, str) or not content.strip():
             raise ModelUnavailable(f"{model} returned empty content")

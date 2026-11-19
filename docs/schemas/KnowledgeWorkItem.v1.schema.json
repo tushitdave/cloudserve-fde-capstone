@@ -22,7 +22,9 @@
         "published",
         "rejected",
         "quarantined",
-        "unchanged"
+        "unchanged",
+        "dead_letter",
+        "superseded"
       ],
       "title": "Status",
       "type": "string"
