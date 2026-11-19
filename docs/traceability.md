@@ -15,6 +15,6 @@ This matrix maps every Build Specification criterion to an accountable component
 | A9 | Entire arbitrary unseen file runs unattended | Batch harness | `evaluation/harness.py`, `scripts/batch.sh` | 500 development, 80 visible validation and six-item reordered/malformed rehearsal; **local pass**. Hidden assessment remains unseen. |
 | A10 | Same run emits metrics automatically | Evaluation | `evaluation/harness.py` | Each run writes `metrics.json` with volume, technical, governance and offline business proxies; **local pass**. Observed live outcomes unavailable. |
 | A11 | No hit, timeout, rate limit, outage and malformed input fail safely | Reliability | `service.py`, `azure.py`, `tests/test_safety_suite.py` | 13 injected safety cases and full-run reconciliation; **local pass**, live provider recovery open. |
-| A12 | One documented command runs tests | Test harness | `scripts/test.sh`, `README.md`, `.github/workflows/ci.yml` | `./scripts/test.sh` passes 90 tests and the React build; hosted CI run 44018697248 green on a fresh Python 3.12 runner; **local + CI pass**. |
+| A12 | One documented command runs tests | Test harness | `scripts/test.sh`, `README.md`, `.github/workflows/ci.yml` | `./scripts/test.sh` passes 92 tests and the React build; hosted CI run 44473651983 green on a fresh Python 3.12 runner; **local + CI pass**. |
 
 The component owner names describe responsibility in this single-student project; they do not imply a separate human team. The [build ledger](BUILD_PLAN.md) controls task completion.

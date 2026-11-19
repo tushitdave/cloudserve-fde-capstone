@@ -17,7 +17,7 @@
 
 | ID | Item | Est. hours | Priority | Depends on | Definition of done | Status |
 |---|---|---:|---|---|---|---|
-| B-01 | Environment and dependency setup | 2 | Must | — | Pinned `requirements.txt`; fresh install passes in CI | Done (CI run 43889620478) |
+| B-01 | Environment and dependency setup | 2 | Must | — | Pinned `requirements.txt`; fresh install passes in CI | Done (CI run 44473651983) |
 | B-02 | Data loading and normalisation | 2 | Must | B-01 | Four channels normalised; malformed and empty rows escalate | Done |
 | B-03 | Document chunking and embedding | 3 | Must | B-02 | Section-aware passages with exact offsets; procedures never split | Done: Chroma + all-MiniLM-L6-v2 index |
 | B-04 | Vector store and retrieval | 3 | Must | B-03 | Ranked real passage IDs; threshold returns nothing when weak | Done: lexical/dense/hybrid/rerank compared; hybrid selected |

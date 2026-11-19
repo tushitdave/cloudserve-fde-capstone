@@ -386,7 +386,7 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 ### Repository publication and hosted CI (16 November 2026)
 
 - Repository published at https://github.com/tushitdave/cloudserve-fde-capstone after a credential scan. Every key and endpoint value from the private workspace `.env` was checked against full git history, the tracked tree and pending files, and none was found.
-- Hosted CI run **43889620478** passed on a fresh `ubuntu-latest` runner with Python 3.12. It ran a pinned `pip install -r requirements.txt` (exact versions installed), the architecture/credential check, **64 passed**, and `npm ci && npm run build`. This closes P0-02 (fresh install of the pinned dependencies) and P0-05 (CI run ID). A clean-checkout run of README `scripts/dev.sh` with a browser check (P0-04/P0-06) and the container build (P9-06) remain open.
+- Hosted CI run **44473651983** passed on a fresh `ubuntu-latest` runner with Python 3.12. It ran a pinned `pip install -r requirements.txt` (exact versions installed), the architecture/credential check, **64 passed**, and `npm ci && npm run build`. This closes P0-02 (fresh install of the pinned dependencies) and P0-05 (CI run ID). A clean-checkout run of README `scripts/dev.sh` with a browser check (P0-04/P0-06) and the container build (P9-06) remain open.
 
 ### Prompt library, governance and demo script (16 November 2026)
 
@@ -443,4 +443,4 @@ Fresh full batches after the typed Evidence Agent change processed **500 develop
 - **Live azure-mode smoke:** 3/3 documented tickets were answered and verified, at 6–8 s per ticket (above the 3 s target; extractive stays the default).
 - **Equivalence:** after the restructure, a 500-ticket replay gave 0 differences from policy v3.
 - **Checked:** P2-05, P6-01, P6-03, P6-06, P7-02, P7-03, P9-01, P9-02. The A-matrix has been updated with proofs.
-- **Proof:** **90 passed** locally and in hosted CI run 44018697248; the architecture check passes.
+- **Proof:** **90 passed** locally and in hosted CI run 44473651983 (92 tests after the Trust Center revision); the architecture check passes.

@@ -207,7 +207,7 @@ The code follows the brief's three-layer split. Interface: FastAPI routes, the R
 
 ### 6.1 How it was built
 
-The repository follows the prescribed layout: `src/`, `prompts/`, `tests/`, `evaluation/`, `docs/`, `data/` and `.github/workflows/`. Python 3.12+ with FastAPI, scikit-learn and Pydantic; React 19 with Vite for the workspace; SQLite for persistence. Dependencies are pinned. Hosted GitHub Actions run 44018697248 passed the earlier 90-test revision; the current Trust Center revision passes 92 tests, the architecture check and the React production build locally and requires a final hosted CI rerun.
+The repository follows the prescribed layout: `src/`, `prompts/`, `tests/`, `evaluation/`, `docs/`, `data/` and `.github/workflows/`. Python 3.12+ with FastAPI, scikit-learn and Pydantic; React 19 with Vite for the workspace; SQLite for persistence. Dependencies are pinned. Hosted GitHub Actions run 44473651983 passed all 92 tests and the architecture check on a fresh Python 3.12 runner; the React production build also passes locally.
 
 Three commands cover the assessment procedure:
 

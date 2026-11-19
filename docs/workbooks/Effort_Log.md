@@ -35,7 +35,7 @@
 | 16 Nov | Safety suite (A11), HITL resolution, knowledge pipeline | 5 | ____ | 13 safety cases; review/publish flow | — |
 | 16 Nov | Problem statement, PRD v1, traceability, gold seed | 1–2 | ____ | `docs/problem_statement.md`, `PRD_v1.md` | — |
 | 16 Nov | Diagnose over-escalation; policy v2; calibration; threshold selection | 5 | ____ | PRD revision R1; 72.8% auto | — |
-| 16 Nov | GitHub publication, CI | 5 | ____ | CI run 43889620478 green | — |
+| 16 Nov | GitHub publication, CI | 5 | ____ | CI green (current run 44473651983) | — |
 | 16 Nov | Prompt library, governance doc, workbooks | 3, 6 | ____ | `prompts/`, `docs/governance.md`, `docs/workbooks/` | — |
 | 17 Nov | Report review and edits | 6 | ____ | Report PDF | |
 | 18 Nov | Video recording (two takes), archive, final checks | 6 | ____ | MP4, archive | |
